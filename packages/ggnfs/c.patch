@@ -1,0 +1,13 @@
+diff --git a/src/combparts.c b/src/combparts.c
+index 17fbecb..0976f4c 100644
+--- a/src/combparts.c
++++ b/src/combparts.c
+@@ -68,7 +68,7 @@ void sortByNumLP(s32 *fieldsBySize, llist_t *P, char *str)
+ 
+   ll_getsortOnFieldSize(fieldsBySize, P);
+   if (str != NULL) {
+-    printf(str);
++    printf("%s", str);
+     for (i=0; i<8; i++) /* Overkill - 4 or 6 would do. */
+       numBySize[i]=0;
+     i=0;

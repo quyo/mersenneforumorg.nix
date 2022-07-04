@@ -1,0 +1,55 @@
+diff --git a/src/Makefile b/src/Makefile
+index 01f66be..d8b862c 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -48,7 +48,7 @@ OBJS=getprimes.o fbmisc.o squfof.o rels.o $(LANCZOS).o poly.o mpz_poly.o \
+ BINS=$(BINDIR)/sieve $(BINDIR)/procrels $(BINDIR)/sqrt $(BINDIR)/polyselect \
+      $(BINDIR)/makefb $(BINDIR)/matsolve $(BINDIR)/matbuild $(BINDIR)/matprune
+ 
+-LSBINS=latsiever polsel
++LSBINS=polsel
+ 
+ #ifeq ($(OSTYPE),msys)
+ #Hope, we're running Mingw32 ;)
+@@ -137,7 +137,7 @@ strip : $(BINS) $(LSBINS)
+ ifeq ($(OS),Windows_NT)
+ 	strip $(BINDIR)/*.exe
+ else
+-	strip $(BINS) ../bin/gnfs-lasieve4I1?e ../bin/pol51*
++	strip $(BINS) ../bin/pol51**
+ endif
+ 
+ clean : lasieve-clean polsel-clean
+diff --git a/src/experimental/lasieve4_64/Makefile b/src/experimental/lasieve4_64/Makefile
+index 90a6f50..4aed86a 100644
+--- a/src/experimental/lasieve4_64/Makefile
++++ b/src/experimental/lasieve4_64/Makefile
+@@ -48,22 +48,22 @@ gnfs-lasieve4eI%.o: gnfs-lasieve4e.c
+ 
+ gnfs-lasieve4I11e: gnfs-lasieve4eI11.o $(OBJS) libgmp-aux.a \
+                              liblasieve.a liblasieveI11.a 
+-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS) -static
++	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
+ gnfs-lasieve4I12e: gnfs-lasieve4eI12.o $(OBJS) libgmp-aux.a \
+                              liblasieve.a liblasieveI12.a 
+-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS) -static
++	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
+ gnfs-lasieve4I13e: gnfs-lasieve4eI13.o $(OBJS) libgmp-aux.a \
+                              liblasieve.a liblasieveI13.a 
+-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS) -static
++	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
+ gnfs-lasieve4I14e: gnfs-lasieve4eI14.o $(OBJS) libgmp-aux.a \
+                              liblasieve.a liblasieveI14.a 
+-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS) -static
++	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
+ gnfs-lasieve4I15e: gnfs-lasieve4eI15.o $(OBJS) libgmp-aux.a \
+                              liblasieve.a liblasieveI15.a 
+-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS) -static
++	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
+ gnfs-lasieve4I16e: gnfs-lasieve4eI16.o $(OBJS) libgmp-aux.a \
+                              liblasieve.a liblasieveI16.a 
+-	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS) -static
++	$(CC) $(CFLAGS) $(INC) $(LIBFLAGS) -o $@ $^ $(LIBS)
+ 
+ 
+ clean:
