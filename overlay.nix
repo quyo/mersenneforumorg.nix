@@ -1,7 +1,7 @@
-final: prev:
+self: super:
 
 let
-  nixpkgs = prev;
+  nixpkgs = super;
   allPkgs = nixpkgs // pkgs;
 
   callPackage = path: overrides:
