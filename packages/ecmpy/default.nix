@@ -1,13 +1,13 @@
 { stdenv, unzip, ecm, python2 }:
 
 let
-  name = "${pname}-${version}";
-  pname = "ecmpy";
+  name = "ecmpy-${version}";
+  pname = "ecm.py";
   version = "0.44";
 in
 
 stdenv.mkDerivation {
-  inherit name ecm;
+  inherit name pname ecm;
 
   src = ./ecm-py_v0.44.zip;
 

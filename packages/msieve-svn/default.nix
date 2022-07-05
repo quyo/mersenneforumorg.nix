@@ -10,7 +10,7 @@ in
 assert gmp == ecm.gmp;
 
 stdenv.mkDerivation rec {
-  inherit name zlib gmp ecm;
+  inherit name pname zlib gmp ecm;
 
   src = fetchsvn {
     url = "https://svn.code.sf.net/p/msieve/code/trunk/";

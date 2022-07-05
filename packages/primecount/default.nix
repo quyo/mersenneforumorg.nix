@@ -8,7 +8,7 @@ let
 in
 
 stdenv.mkDerivation {
-  inherit name;
+  inherit name pname;
 
   src = fetchgit {
     url = "https://github.com/kimwalisch/primecount";

@@ -17,7 +17,7 @@ assert msieve == yafu.msieve;
 assert msieve == factmsievepy.msieve;
 
 stdenv.mkDerivation {
-  inherit name gmp ecm ecmpy yafu msieve factmsievepy;
+  inherit name pname gmp ecm ecmpy yafu msieve factmsievepy;
 
   src = fetchgit {
     url = "https://github.com/ChristianBeer/aliqueit.git";
@@ -42,7 +42,7 @@ stdenv.mkDerivation {
     sed -i -e 's|^//\(null_device = /dev\)|\1|'                                     aliqueit.ini
     sed -i -e 's|^ecm_cmd = .*$|ecm_cmd = ${ecm}/bin/ecm|'                          aliqueit.ini
     sed -i -e 's|^ecmpy_cmd = .*$|ecmpy_cmd = ${ecmpy}/bin/ecm.py|'                 aliqueit.ini
-    sed -i -e 's|^yafu_cmd = .*$|yafu_cmd = ${yafu}/bin/yafu-wrapped|'              aliqueit.ini
+    sed -i -e 's|^yafu_cmd = .*$|yafu_cmd = ${yafu}/bin/.yafu-wrapped|'             aliqueit.ini
     sed -i -e 's|^msieve_cmd = .*$|msieve_cmd = ${msieve}/bin/msieve|'              aliqueit.ini
     sed -i -e 's|^ggnfs_cmd = .*$|ggnfs_cmd = ${factmsievepy}/bin/factmsieve.py|'   aliqueit.ini
     sed -i -e 's|^stop_on_failure = .*$|stop_on_failure = true|'                    aliqueit.ini
@@ -70,13 +70,13 @@ stdenv.mkDerivation {
 
     cp aliqueit.ini $out/bin/
     cp aliqueit.txt $out/bin/
-    cp src/aliqueit $out/bin/aliqueit-wrapped
+    cp src/aliqueit $out/bin/.aliqueit-wrapped
 
     cat > $out/bin/aliqueit <<'EOF'
     #!${bash}/bin/bash
     WORKDIR=$(mktemp -d)
     pushd $WORKDIR
-    cp /out/bin/aliqueit-wrapped ./aliqueit
+    cp /out/bin/.aliqueit-wrapped ./aliqueit
     cp /out/bin/aliqueit.ini .
     cp /out/bin/aliqueit.txt .
     cp ${yafu}/bin/yafu.ini .

@@ -16,7 +16,7 @@ assert ytools == ysieve.ytools;
 assert null == msieve.zlib;
 
 stdenv.mkDerivation {
-  inherit name gmp ecm msieve ytools ysieve ggnfs;
+  inherit name pname gmp ecm msieve ytools ysieve ggnfs;
 
   src = fetchgit {
     url = "https://github.com/bbuhrow/yafu";
@@ -48,14 +48,14 @@ stdenv.mkDerivation {
     runHook preInstall
 
     mkdir -p $out/bin
-    cp yafu $out/bin/yafu-wrapped
+    cp yafu $out/bin/.yafu-wrapped
     cp yafu.ini $out/bin/
 
     cat > $out/bin/yafu <<'EOF'
     #!${bash}/bin/bash
     WORKDIR=$(mktemp -d)
     pushd $WORKDIR
-    cp /out/bin/yafu-wrapped ./yafu
+    cp /out/bin/.yafu-wrapped ./yafu
     cp /out/bin/yafu.ini .
     chmod +w ./*
     ./yafu "$@"

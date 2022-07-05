@@ -1,8 +1,8 @@
 { stdenv, fetchgit, cmake, bash, gmp, ecm, python3, perl }:
 
 let
-  name = "${pname}-${version}";
-  pname = "cado-nfs";
+  name = "cado-nfs-${version}";
+  pname = "cado-nfs.py";
   version = "git-" + builtins.substring 0 8 commit;
   commit = "9044db91bbb2cc853f27b166862077c8ce8e8686";
 in
@@ -10,7 +10,7 @@ in
 assert gmp == ecm.gmp;
 
 stdenv.mkDerivation {
-  inherit name gmp ecm;
+  inherit name pname gmp ecm;
 
   src = fetchgit {
     url = "https://gitlab.inria.fr/cado-nfs/cado-nfs";
