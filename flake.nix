@@ -3,9 +3,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
     flake-utils.url = "github:numtide/flake-utils";
+    devshell.url = "github:numtide/devshell";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, devshell }:
     {
       overlay = import ./overlay.nix;
     }
@@ -17,6 +18,7 @@
           inherit system;
           overlays = [
             self.overlay
+            devshell.overlay
           ];
         };
 
@@ -28,6 +30,10 @@
           inherit ecmpy factmsievepy aliqueit;
           inherit cado-nfs;
           inherit primesieve primecount primesum;
+        };
+
+        devShell = with pkgs.devshell; mkShell {
+          imports = [ (importTOML ./devshell.toml) ];
         };
 
       }

@@ -1,0 +1,47 @@
+[devshell]
+name = "mersenneforumorg.nix"
+
+
+[[commands]]
+package = "primesieve"
+category = "prime numbers"
+help = "fast prime number generator"
+
+# [[commands]]
+# package = "primecount"
+# category = "prime numbers"
+# help = "fast prime counting function implementations"
+
+# [[commands]]
+# package = "primesum"
+# category = "prime numbers"
+# help = "sum of the primes below x"
+
+
+[[commands]]
+package = "ecm-git"
+command = "ecm"
+category = "factorization"
+help = "factoring numbers using the ECM, p-1 and p+1 algorithms"
+
+[[commands]]
+package = "msieve-svn"
+command = "msieve"
+category = "factorization"
+help = "implementation of the SIQS and GNFS algorithms"
+
+[[commands]]
+package = "yafu"
+category = "factorization"
+help = "automated integer factorization"
+
+[[commands]]
+package = "aliqueit"
+category = "factorization"
+help = "computing and verifying aliquot sequences"
+
+[[commands]]
+package = "cado-nfs"
+command = "cado-nfs.py"
+category = "factorization"
+help = "implementation of the NFS algorithm for factoring integers and computing discrete logarithms in finite fields"
