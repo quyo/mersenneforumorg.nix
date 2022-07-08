@@ -1,6 +1,6 @@
-self: super:
+final: prev:
 
-with self; {
+with final; {
 
   ecm-git = callPackage ./packages/ecm-git { };
 
