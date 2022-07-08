@@ -24,12 +24,12 @@
 
       in {
 
-        packages = with pkgs; {
-          inherit gmp ecm-git;
-          inherit msieve-svn ytools ysieve yafu ggnfs;
-          inherit ecmpy factmsievepy aliqueit;
-          inherit cado-nfs;
-          inherit primesieve primecount primesum;
+        packages = {
+          inherit (pkgs) gmp ecm-git;
+          inherit (pkgs) msieve-svn ytools ysieve yafu ggnfs;
+          inherit (pkgs) ecmpy factmsievepy aliqueit;
+          inherit (pkgs) cado-nfs;
+          inherit (pkgs) primesieve primecount primesum;
         };
 
         devShell = with pkgs.devshell; mkShell {
