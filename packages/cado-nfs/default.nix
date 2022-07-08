@@ -4,7 +4,7 @@ let
   name = "cado-nfs-${version}";
   pname = "cado-nfs.py";
   version = "git-" + builtins.substring 0 8 commit;
-  commit = "9044db91bbb2cc853f27b166862077c8ce8e8686";
+  commit = "f3a13e8a2c9b65d1853cb1205c58efe72954d1e5";
 in
 
 assert gmp == ecm.gmp;
@@ -15,7 +15,7 @@ stdenv.mkDerivation {
   src = fetchgit {
     url = "https://gitlab.inria.fr/cado-nfs/cado-nfs";
     rev = commit;
-    sha256 = "8swSRywCayZTFcvJYf5A3bR4ZjJNtRTlSTCaVj9i+nI=";
+    sha256 = "jrV1nozmtwkM/4otq00NQYT3zbkzgzEF6WTRz76JBOg=";
   };
 
   nativeBuildInputs = [ cmake bash ];
