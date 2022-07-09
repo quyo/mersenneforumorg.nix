@@ -14,7 +14,7 @@ stdenv.mkDerivation {
   src = fetchgit {
     url = "https://github.com/radii/ggnfs";
     rev = commit;
-    sha256 = "M8e6m4d25T+SJb3E/tbRTXL1RuhHupkxMiD04XEQ7kU=";
+    sha256 = "pLCtpHWYZ+R0CMfjQ9wceVV69ATzAcCX4zo0c+Fhgx8=";
   };
 
   nativeBuildInputs = [ m4 ];
