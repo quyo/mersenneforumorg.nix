@@ -23,15 +23,23 @@
           ];
         };
 
-      in {
-
-        packages = {
+        flakePkgs = {
           inherit (pkgs) gmp ecm-git;
           inherit (pkgs) msieve-svn ytools ysieve yafu ggnfs;
           inherit (pkgs) ecmpy factmsievepy aliqueit;
           inherit (pkgs) cado-nfs;
           inherit (pkgs) primesieve primecount primesum;
         };
+
+      in {
+
+        packages = flakePkgs
+          //
+          {
+            default = pkgs.hello.overrideAttrs (oldAttrs: {
+              nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ map (x: flakePkgs.${x}) (builtins.attrNames flakePkgs);
+            });
+          };
 
         devShells = {
           default = with pkgs.devshell; mkShell {
