@@ -1,0 +1,41 @@
+name: nixbuild-ci
+
+on:
+  push:
+    branches: [ "main" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  build:
+    name: Build flake
+    uses: nixbuild/nixbuild-action/.github/workflows/ci-workflow.yml@v12
+    secrets:
+      nixbuild_ssh_key: ${{ secrets.nixbuild_ssh_key }}
+    with:
+      filter_builds: '.top_attr == "packages"'
+
+  upload:
+    name: Upload flake
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: nixbuild/nix-quick-install-action@v16
+        with:
+          nix_on_tmpfs: true
+          nix_conf: |
+            experimental-features = nix-command flakes
+
+      - uses: nixbuild/nixbuild-action@v12
+        with:
+          nixbuild_ssh_key: ${{ secrets.nixbuild_ssh_key }}
+
+      - name: Upload Nix flake to Cachix
+        working-directory: .
+        run: |
+          nix profile install .#cachixsh
+          CACHIX_AUTH_TOKEN=${{ secrets.cachix_auth_token }} cachix-push-flake-runtime-closures-all .
