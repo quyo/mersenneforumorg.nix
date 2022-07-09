@@ -1,7 +1,6 @@
 { lib, stdenv, fetchsvn, subversion, zlib, gmp, ecm }:
 
 let
-  name = "${pname}-${version}";
   pname = "msieve";
   version = "svn-" + revision;
   revision = "1044";
@@ -10,7 +9,7 @@ in
 assert gmp == ecm.gmp;
 
 stdenv.mkDerivation rec {
-  inherit name pname version;
+  inherit pname version;
   inherit zlib gmp ecm;
 
   src = fetchsvn {

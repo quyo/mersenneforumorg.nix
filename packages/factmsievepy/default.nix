@@ -1,13 +1,12 @@
 { stdenv, msieve, ggnfs, python2 }:
 
 let
-  name = "factmsievepy-${version}";
-  pname = "factmsieve.py";
+  pname = "factmsievepy";
   version = "0.86";
 in
 
 stdenv.mkDerivation {
-  inherit name pname version;
+  inherit pname version;
   inherit msieve ggnfs;
 
   src = ./factmsieve-0.86.py;

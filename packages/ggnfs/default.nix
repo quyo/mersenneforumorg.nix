@@ -1,14 +1,13 @@
 { stdenv, fetchgit, m4, gmp }:
 
 let
-  name = "${pname}-${version}";
   pname = "ggnfs";
   version = "git-" + builtins.substring 0 8 commit;
   commit = "3490572ca8671635a1b8d13a28aef3e34a657fc7";
 in
 
 stdenv.mkDerivation {
-  inherit name version;
+  inherit pname version;
   inherit gmp;
 
   src = fetchgit {

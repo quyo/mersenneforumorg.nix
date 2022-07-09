@@ -1,7 +1,6 @@
 { stdenv, fetchgit, gmp, ecm, ecmpy, yafu, msieve, factmsievepy, bash }:
 
 let
-  name = "${pname}-${version}";
   pname = "aliqueit";
   version = "git-" + builtins.substring 0 8 commit;
   commit = "1c97023777735dd81200ad6f36ca9a8d1865f879";
@@ -17,7 +16,7 @@ assert msieve == yafu.msieve;
 assert msieve == factmsievepy.msieve;
 
 stdenv.mkDerivation {
-  inherit name pname version;
+  inherit pname version;
   inherit gmp ecm ecmpy yafu msieve factmsievepy;
 
   src = fetchgit {

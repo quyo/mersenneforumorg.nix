@@ -1,14 +1,13 @@
 { stdenv, fetchgit, gmp, ytools }:
 
 let
-  name = "${pname}-${version}";
   pname = "ysieve";
   version = "git-" + builtins.substring 0 8 commit;
   commit = "275fb23f05fd870f3b3afba00c8dbe63994b434f";
 in
 
 stdenv.mkDerivation {
-  inherit name pname version;
+  inherit pname version;
   inherit gmp ytools;
 
   src = fetchgit {

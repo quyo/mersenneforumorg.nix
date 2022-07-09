@@ -1,14 +1,13 @@
 { stdenv, fetchgit, cmake }:
 
 let
-  name = "${pname}-${version}";
   pname = "primesieve";
   version = "git-" + builtins.substring 0 8 commit;
   commit = "6b13e217df6932f4714048cead12579fc34e1d32";
 in
 
 stdenv.mkDerivation {
-  inherit name pname version;
+  inherit pname version;
 
   src = fetchgit {
     url = "https://github.com/kimwalisch/primesieve";

@@ -1,14 +1,13 @@
 { lib, stdenv, fetchgit, autoreconfHook, m4, gmp }:
 
 let
-  name = "${pname}-${version}";
   pname = "ecm";
   version = "git-" + builtins.substring 0 8 commit;
   commit = "5663e00cb4880a6ee6393eb9067e9eea201098d4";
 in
 
 stdenv.mkDerivation {
-  inherit name pname version;
+  inherit pname version;
   inherit gmp;
 
   src = fetchgit {

@@ -1,7 +1,6 @@
 { stdenv, fetchgit, gmp, ecm, msieve, ytools, ysieve, ggnfs, bash }:
 
 let
-  name = "${pname}-${version}";
   pname = "yafu";
   version = "git-" + builtins.substring 0 8 commit;
   commit = "ca48c65b66a465a5a47cf7da0301f4ef56227573";
@@ -16,7 +15,7 @@ assert ytools == ysieve.ytools;
 assert null == msieve.zlib;
 
 stdenv.mkDerivation {
-  inherit name pname version;
+  inherit pname version;
   inherit gmp ecm msieve ytools ysieve ggnfs;
 
   src = fetchgit {
