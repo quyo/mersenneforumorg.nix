@@ -17,7 +17,8 @@ assert msieve == yafu.msieve;
 assert msieve == factmsievepy.msieve;
 
 stdenv.mkDerivation {
-  inherit name pname gmp ecm ecmpy yafu msieve factmsievepy;
+  inherit name pname version;
+  inherit gmp ecm ecmpy yafu msieve factmsievepy;
 
   src = fetchgit {
     url = "https://github.com/ChristianBeer/aliqueit.git";

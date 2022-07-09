@@ -7,7 +7,8 @@ let
 in
 
 stdenv.mkDerivation {
-  inherit name pname msieve ggnfs;
+  inherit name pname version;
+  inherit msieve ggnfs;
 
   src = ./factmsieve-0.86.py;
 

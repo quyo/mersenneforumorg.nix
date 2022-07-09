@@ -8,7 +8,8 @@ let
 in
 
 stdenv.mkDerivation {
-  inherit name pname gmp ytools;
+  inherit name pname version;
+  inherit gmp ytools;
 
   src = fetchgit {
     url = "https://github.com/bbuhrow/ysieve";

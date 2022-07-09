@@ -10,7 +10,8 @@ in
 assert gmp == ecm.gmp;
 
 stdenv.mkDerivation {
-  inherit name pname gmp ecm;
+  inherit name pname version;
+  inherit gmp ecm;
 
   src = fetchgit {
     url = "https://gitlab.inria.fr/cado-nfs/cado-nfs";

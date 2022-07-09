@@ -16,7 +16,8 @@ assert ytools == ysieve.ytools;
 assert null == msieve.zlib;
 
 stdenv.mkDerivation {
-  inherit name pname gmp ecm msieve ytools ysieve ggnfs;
+  inherit name pname version;
+  inherit gmp ecm msieve ytools ysieve ggnfs;
 
   src = fetchgit {
     url = "https://github.com/bbuhrow/yafu";

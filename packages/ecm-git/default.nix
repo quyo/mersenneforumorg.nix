@@ -8,7 +8,8 @@ let
 in
 
 stdenv.mkDerivation {
-  inherit name pname gmp;
+  inherit name pname version;
+  inherit gmp;
 
   src = fetchgit {
     url = "https://gitlab.inria.fr/zimmerma/ecm";

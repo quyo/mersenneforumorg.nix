@@ -8,7 +8,7 @@ let
 in
 
 stdenv.mkDerivation {
-  inherit name pname;
+  inherit name pname version;
 
   src = fetchgit {
     url = "https://github.com/kimwalisch/primesieve";
