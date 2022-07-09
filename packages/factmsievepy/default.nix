@@ -17,7 +17,7 @@ stdenv.mkDerivation {
   unpackPhase = ''
     runHook preUnpack
 
-    mv $src factmsieve.py
+    cp $src factmsieve.py
     chmod +x factmsieve.py
 
     runHook postUnpack
