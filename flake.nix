@@ -41,6 +41,8 @@
             });
           };
 
+        apps = import ./apps.nix self system;
+
         devShells = {
           default = with pkgs.devshell; mkShell {
             imports = [ (importTOML ./devshell.toml) ];
