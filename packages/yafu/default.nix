@@ -55,15 +55,15 @@ stdenv.mkDerivation {
     #!${bash}/bin/bash
     WORKDIR=$(mktemp -d)
     pushd $WORKDIR
-    cp /out/bin/.yafu-wrapped ./yafu
-    cp /out/bin/yafu.ini .
+    cp @out@/bin/.yafu-wrapped ./yafu
+    cp @out@/bin/yafu.ini .
     chmod +w ./*
     ./yafu "$@"
     popd
     rm -rfI $WORKDIR
     EOF
 
-    sed -i -e "s|/out/|$out/|g" $out/bin/yafu
+    substituteAllInPlace $out/bin/yafu
     chmod +x $out/bin/yafu
 
     runHook postInstall

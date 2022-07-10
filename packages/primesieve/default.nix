@@ -20,8 +20,5 @@ stdenv.mkDerivation {
   cmakeFlags = "-DBUILD_TESTS=ON";
 
   doCheck = false;
-
-  checkPhase = ''
-    ctest
-  '';
+  checkPhase = "ctest";
 }

@@ -76,9 +76,9 @@ stdenv.mkDerivation {
     #!${bash}/bin/bash
     WORKDIR=$(mktemp -d)
     pushd $WORKDIR
-    cp /out/bin/.aliqueit-wrapped ./aliqueit
-    cp /out/bin/aliqueit.ini .
-    cp /out/bin/aliqueit.txt .
+    cp @out@/bin/.aliqueit-wrapped ./aliqueit
+    cp @out@/bin/aliqueit.ini .
+    cp @out@/bin/aliqueit.txt .
     cp ${yafu}/bin/yafu.ini .
     chmod +w ./*
     ./aliqueit "$@"
@@ -86,7 +86,7 @@ stdenv.mkDerivation {
     rm -rfI $WORKDIR
     EOF
 
-    sed -i -e "s|/out/|$out/|g" $out/bin/aliqueit
+    substituteAllInPlace $out/bin/aliqueit
     chmod +x $out/bin/aliqueit
 
     runHook postInstall
