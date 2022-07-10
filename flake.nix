@@ -2,11 +2,13 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+
     flake-utils.url = "github:numtide/flake-utils";
     devshell.url = "github:numtide/devshell";
   };
 
-  outputs = { self, nixpkgs, flake-utils, devshell }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, devshell }:
     {
       overlays = {
         default = import ./overlay.nix;
@@ -16,11 +18,21 @@
     flake-utils.lib.eachSystem [ flake-utils.lib.system.x86_64-linux ] (system:
       let
 
+        flakeOverlays = (builtins.attrValues self.overlays) ++ [
+          devshell.overlay
+        ];
+
+        # can now use "pkgs.package" or "pkgs.unstable.package"
+        unstableOverlay = final: prev: {
+          unstable = import nixpkgs-unstable {
+            inherit system;
+            overlays = flakeOverlays;
+          };
+        };
+
         pkgs = import nixpkgs {
           inherit system;
-          overlays = (builtins.attrValues self.overlays) ++ [
-            devshell.overlay
-          ];
+          overlays = [ unstableOverlay ] ++ flakeOverlays;
         };
 
         flakePkgs = {
