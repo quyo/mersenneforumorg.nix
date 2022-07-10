@@ -36,9 +36,7 @@
         packages = flakePkgs
           //
           {
-            default = pkgs.hello.overrideAttrs (oldAttrs: {
-              nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ map (x: flakePkgs.${x}) (builtins.attrNames flakePkgs);
-            });
+            default = pkgs.linkFarmFromDrvs "mersenneforumorg-packages-all" (map (x: flakePkgs.${x}) (builtins.attrNames flakePkgs));
           };
 
         apps = import ./apps.nix self system;
