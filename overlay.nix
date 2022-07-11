@@ -5,14 +5,16 @@ with final; {
   ecm-git = callPackage ./packages/ecm-git { };
 
   msieve-svn = callPackage ./packages/msieve-svn { ecm = ecm-git; zlib = null; };
+  ggnfs = callPackage ./packages/ggnfs { };
   ytools = callPackage ./packages/ytools { };
   ysieve = callPackage ./packages/ysieve { };
-  yafu = callPackage ./packages/yafu { ecm = ecm-git; msieve = msieve-svn; };
-  ggnfs = callPackage ./packages/ggnfs { };
+  yafu-unwrapped = callPackage ./packages/yafu-unwrapped { ecm = ecm-git; msieve = msieve-svn; };
+  yafu = callPackage ./packages/yafu { };
 
   ecmpy = callPackage ./packages/ecmpy { ecm = ecm-git; };
   factmsievepy = callPackage ./packages/factmsievepy { msieve = msieve-svn; };
-  aliqueit = callPackage ./packages/aliqueit { ecm = ecm-git; msieve = msieve-svn; };
+  aliqueit-unwrapped = callPackage ./packages/aliqueit-unwrapped { ecm = ecm-git; msieve = msieve-svn; };
+  aliqueit = callPackage ./packages/aliqueit { };
 
   cado-nfs = callPackage ./packages/cado-nfs { ecm = ecm-git; };
 

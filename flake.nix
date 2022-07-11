@@ -37,8 +37,8 @@
 
         flakePkgs = {
           inherit (pkgs) gmp ecm-git;
-          inherit (pkgs) msieve-svn ytools ysieve yafu ggnfs;
-          inherit (pkgs) ecmpy factmsievepy aliqueit;
+          inherit (pkgs) msieve-svn ggnfs ytools ysieve yafu yafu-unwrapped;
+          inherit (pkgs) ecmpy factmsievepy aliqueit aliqueit-unwrapped;
           inherit (pkgs) cado-nfs;
           inherit (pkgs) primesieve primecount primesum;
         };
