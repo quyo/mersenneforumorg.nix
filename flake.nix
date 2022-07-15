@@ -5,7 +5,10 @@
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     flake-utils.url = "github:numtide/flake-utils";
+
     devshell.url = "github:numtide/devshell";
+    devshell.inputs.nixpkgs.follows = "nixpkgs";
+    devshell.inputs.flake-utils.follows = "flake-utils";
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, devshell }:
