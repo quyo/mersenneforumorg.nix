@@ -18,8 +18,8 @@ with final; {
 
   cado-nfs = callPackage ./packages/cado-nfs { ecm = ecm-git; };
 
-  primesieve = callPackage ./packages/primesieve { };
-  primecount = callPackage ./packages/primecount { };
+# primesieve = callPackage ./packages/primesieve { };
+# primecount = callPackage ./packages/primecount { };  ---  rebuilds / breaks sage via primecountpy
   primesum = callPackage ./packages/primesum { };
 
 }
