@@ -9,9 +9,12 @@
     devshell.url = "github:numtide/devshell";
     devshell.inputs.nixpkgs.follows = "nixpkgs";
     devshell.inputs.flake-utils.follows = "flake-utils";
+
+    flake-compat.url = "github:edolstra/flake-compat";
+    flake-compat.flake = false;
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, devshell }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, devshell, ... }:
     {
       overlays = {
         default = import ./overlay.nix;
