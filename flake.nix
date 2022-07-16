@@ -63,10 +63,10 @@
         packages = flakePkgs
           //
           {
-            default = pkgs.linkFarmFromDrvs "mersenneforumorg-packages-all" (map (x: flakePkgs.${x}) (builtins.attrNames flakePkgs));
+            default = pkgs.linkFarmFromDrvs "mersenneforumorg-packages-default" (map (x: flakePkgs.${x}) (builtins.attrNames flakePkgs));
 
-            ci-build = self.packages.${system}.default;
-            ci-publish = self.packages.${system}.default;
+            ci-build = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-packages-ci-build"; });
+            ci-publish = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-packages-ci-publish"; });
 
             docker = import ./docker.nix pkgs;
           };
