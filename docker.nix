@@ -3,7 +3,7 @@ pkgs:
 let
 
   contents = with pkgs; [
-    qshell
+    qshell-minimal
 
     aliqueit
     cado-nfs
@@ -18,7 +18,7 @@ let
 in
 
 pkgs.dockerTools.buildLayeredImage {
-  name = "mersenneforumorg-docker";
+  name = "mersenneforumorg.nix";
   tag = "latest";
 
   inherit contents;
