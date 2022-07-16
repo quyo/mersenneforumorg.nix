@@ -1,8 +1,6 @@
-self: system:
+pkgs:
 
 let
-
-  pkgs = self.packages.${system};
 
   apps = with pkgs; {
     aliqueit           = { type = "app"; program = "${pkgs.aliqueit}/bin/aliqueit"; };

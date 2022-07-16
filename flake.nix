@@ -42,11 +42,12 @@
         };
 
         flakePkgs = {
-          inherit (pkgs) gmp ecm-git;
-          inherit (pkgs) msieve-svn ggnfs ytools ysieve yafu yafu-unwrapped;
-          inherit (pkgs) ecmpy factmsievepy aliqueit aliqueit-unwrapped;
-          inherit (pkgs) cado-nfs;
-          inherit (pkgs) primesieve primecount primesum;
+          inherit (pkgs)
+            gmp ecm-git
+            msieve-svn ggnfs ytools ysieve yafu yafu-unwrapped
+            ecmpy factmsievepy aliqueit aliqueit-unwrapped
+            cado-nfs
+            primesieve primecount primesum;
         };
 
       in {
@@ -55,9 +56,14 @@
           //
           {
             default = pkgs.linkFarmFromDrvs "mersenneforumorg-packages-all" (map (x: flakePkgs.${x}) (builtins.attrNames flakePkgs));
+
+            ci-build = self.packages.${system}.default;
+            ci-publish = self.packages.${system}.default;
+
+            docker = import ./docker.nix pkgs;
           };
 
-        apps = import ./apps.nix self system;
+        apps = import ./apps.nix pkgs;
 
         devShells = {
           default = with pkgs.devshell; mkShell {
