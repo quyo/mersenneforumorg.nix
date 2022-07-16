@@ -18,7 +18,7 @@ let
 in
 
 pkgs.dockerTools.buildLayeredImage {
-  name = "mersenneforumorg.nix";
+  name = "quyo/mersenneforumorg.nix";
   tag = "latest";
 
   inherit contents;
