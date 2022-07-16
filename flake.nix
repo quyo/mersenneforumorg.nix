@@ -19,6 +19,7 @@
     qnixpkgs.inputs.flake-utils.follows = "flake-utils";
     qnixpkgs.inputs.devshell.follows = "devshell";
     qnixpkgs.inputs.flake-compat.follows = "flake-compat";
+    qnixpkgs.inputs.qnixpkgs.follows = "qnixpkgs";
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, devshell, qnixpkgs, ... }:
