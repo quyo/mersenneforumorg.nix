@@ -3,11 +3,7 @@ pkgs:
 let
 
   contents = with pkgs; [
-    bashInteractive
-    coreutils
-    moreutils
-    less
-    nano
+    qshell
 
     aliqueit
     cado-nfs

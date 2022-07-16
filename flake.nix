@@ -12,9 +12,16 @@
 
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
+
+    qnixpkgs.url = "github:Samayel/qnixpkgs";
+    qnixpkgs.inputs.nixpkgs.follows = "nixpkgs";
+    qnixpkgs.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
+    qnixpkgs.inputs.flake-utils.follows = "flake-utils";
+    qnixpkgs.inputs.devshell.follows = "devshell";
+    qnixpkgs.inputs.flake-compat.follows = "flake-compat";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, devshell, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, devshell, qnixpkgs, ... }:
     {
       overlays = {
         default = import ./overlay.nix;
@@ -26,6 +33,7 @@
 
         flakeOverlays = (builtins.attrValues self.overlays) ++ [
           devshell.overlay
+          qnixpkgs.overlays.qshell
         ];
 
         # can now use "pkgs.package" or "pkgs.unstable.package"
