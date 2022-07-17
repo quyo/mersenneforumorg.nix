@@ -69,7 +69,7 @@
             ci-build = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-packages-ci-build"; });
             ci-publish = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-packages-ci-publish"; });
 
-            docker = import ./docker.nix pkgs;
+            docker = (import ./docker.nix pkgs).overrideAttrs (oldAttrs: { name = "mersenneforumorg-packages-docker"; });
           };
 
         apps = import ./apps.nix pkgs;
