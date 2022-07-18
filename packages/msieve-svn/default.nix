@@ -8,7 +8,7 @@ in
 
 assert gmp == ecm.gmp;
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   inherit pname version;
   inherit zlib gmp ecm;
 

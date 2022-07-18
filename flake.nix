@@ -78,9 +78,11 @@
         apps = callPackage ./apps.nix { };
 
         devShells = {
-          default = with pkgs.devshell; mkShell {
-            imports = [ (importTOML ./devshell.toml) ];
-          };
+          default =
+            let inherit (pkgs.devshell) mkShell importTOML;
+            in mkShell {
+              imports = [ (importTOML ./devshell.toml) ];
+            };
         };
 
       }
