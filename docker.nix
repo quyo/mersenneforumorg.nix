@@ -1,8 +1,20 @@
-pkgs:
+{
+  aliqueit,
+  bashInteractive,
+  cado-nfs,
+  dockerTools,
+  ecm-git,
+  msieve-svn,
+  primecount,
+  primesieve,
+  primesum,
+  qshell-minimal,
+  yafu
+}:
 
 let
 
-  contents = with pkgs; [
+  contents = [
     qshell-minimal
 
     aliqueit
@@ -17,13 +29,13 @@ let
 
 in
 
-pkgs.dockerTools.buildLayeredImage {
+dockerTools.buildLayeredImage {
   name = "quyo/mersenneforumorg.nix";
   tag = "latest";
 
   inherit contents;
 
   config = {
-    Cmd = [ "${pkgs.bashInteractive}/bin/bash" ];
+    Cmd = [ "${bashInteractive}/bin/bash" ];
   };
 }

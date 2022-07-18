@@ -58,6 +58,10 @@
             primesieve primecount primesum;
         };
 
+        callPackage = path: overrides:
+          let f = import path;
+          in f ((builtins.intersectAttrs (builtins.functionArgs f) (pkgs // flakePkgs)) // overrides);
+
       in {
 
         packages = flakePkgs
@@ -68,10 +72,10 @@
             ci-build = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-packages-ci-build"; });
             ci-publish = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-packages-ci-publish"; });
 
-            docker = (import ./docker.nix pkgs).overrideAttrs (oldAttrs: { name = "mersenneforumorg-packages-docker"; });
+            docker = (callPackage ./docker.nix { }).overrideAttrs (oldAttrs: { name = "mersenneforumorg-packages-docker"; });
           };
 
-        apps = import ./apps.nix pkgs;
+        apps = callPackage ./apps.nix { };
 
         devShells = {
           default = with pkgs.devshell; mkShell {
