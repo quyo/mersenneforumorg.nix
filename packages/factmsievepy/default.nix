@@ -9,7 +9,7 @@ stdenv.mkDerivation {
   inherit pname version;
   inherit msieve ggnfs;
 
-  src = ./factmsieve-0.86.py;
+  src = ./factmsieve.py;
 
   buildInputs = [ msieve ggnfs python2 ];
 
@@ -17,7 +17,6 @@ stdenv.mkDerivation {
     runHook preUnpack
 
     cp $src factmsieve.py
-    chmod +x factmsieve.py
 
     runHook postUnpack
   '';
@@ -42,8 +41,7 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/bin
-    cp factmsieve.py $out/bin/
+    install -Dt $out/bin -m755 factmsieve.py
 
     runHook postInstall
   '';

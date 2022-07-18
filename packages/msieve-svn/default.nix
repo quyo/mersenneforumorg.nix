@@ -30,12 +30,11 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/{bin,include,lib}
-    cp msieve $out/bin/
-    cp include/msieve.h $out/include/
-    cp zlib/zconf.h $out/include/
-    cp zlib/zlib.h $out/include/
-    cp libmsieve.a $out/lib/
+    install -Dt $out/bin     -m755 msieve
+    install -Dt $out/include -m644 include/msieve.h
+    install -Dt $out/include -m644 zlib/zconf.h
+    install -Dt $out/include -m644 zlib/zlib.h
+    install -Dt $out/lib     -m644 libmsieve.a
 
     runHook postInstall
   '';

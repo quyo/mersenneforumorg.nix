@@ -1,4 +1,4 @@
-{ stdenv, unzip, ecm, python2 }:
+{ stdenv, ecm, python2 }:
 
 let
   pname = "ecmpy";
@@ -9,16 +9,14 @@ stdenv.mkDerivation {
   inherit pname version;
   inherit ecm;
 
-  src = ./ecm-py_v0.44.zip;
+  src = ./ecm.py;
 
-  nativeBuildInputs = [ unzip ];
   buildInputs = [ ecm python2 ];
 
   unpackPhase = ''
     runHook preUnpack
 
-    unzip $src
-    chmod +x ecm.py
+    cp $src ecm.py
 
     runHook postUnpack
   '';
@@ -36,8 +34,7 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/bin
-    cp ecm.py $out/bin/
+    install -Dt $out/bin -m755 ecm.py
 
     runHook postInstall
   '';

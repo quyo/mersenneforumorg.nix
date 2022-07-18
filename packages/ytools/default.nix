@@ -20,10 +20,9 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/{include,lib}
-    cp ytools.h $out/include/
-    cp threadpool.h $out/include/
-    cp libytools.a $out/lib/
+    install -Dt $out/include -m644 ytools.h
+    install -Dt $out/include -m644 threadpool.h
+    install -Dt $out/lib     -m644 libytools.a
 
     runHook postInstall
   '';

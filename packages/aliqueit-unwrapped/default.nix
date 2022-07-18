@@ -66,11 +66,9 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/bin
-
-    cp aliqueit.ini $out/bin/
-    cp aliqueit.txt $out/bin/
-    cp src/aliqueit $out/bin/
+    install -Dt $out/bin -m755 src/aliqueit
+    install -Dt $out/bin -m644 aliqueit.ini
+    install -Dt $out/bin -m644 aliqueit.txt
 
     runHook postInstall
   '';

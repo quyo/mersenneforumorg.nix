@@ -47,10 +47,8 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/bin
-
-    cp yafu $out/bin/
-    cp yafu.ini $out/bin/
+    install -Dt $out/bin -m755 yafu
+    install -Dt $out/bin -m644 yafu.ini
 
     runHook postInstall
   '';

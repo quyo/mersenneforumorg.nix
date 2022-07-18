@@ -23,10 +23,9 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/{bin,include,lib}
-    cp ysieve $out/bin/
-    cp soe.h $out/include/
-    cp libysieve.a $out/lib/
+    install -Dt $out/bin     -m755 ysieve
+    install -Dt $out/include -m644 soe.h
+    install -Dt $out/lib     -m644 libysieve.a
 
     runHook postInstall
   '';
