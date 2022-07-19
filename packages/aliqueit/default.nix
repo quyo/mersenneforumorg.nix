@@ -22,6 +22,8 @@ stdenv.mkDerivation {
 
     cat > $out/bin/aliqueit <<'EOF'
     #!${bash}/bin/bash
+    set -euo pipefail
+    IFS=$'\n\t'
     WORKDIR=$(mktemp -d)
     pushd $WORKDIR
     cp ${aliqueit-unwrapped}/bin/aliqueit .

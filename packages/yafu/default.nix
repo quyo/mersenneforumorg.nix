@@ -20,6 +20,8 @@ stdenv.mkDerivation {
 
     cat > $out/bin/yafu <<'EOF'
     #!${bash}/bin/bash
+    set -euo pipefail
+    IFS=$'\n\t'
     WORKDIR=$(mktemp -d)
     pushd $WORKDIR
     cp ${yafu-unwrapped}/bin/yafu .
