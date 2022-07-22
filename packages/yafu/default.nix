@@ -1,39 +1,30 @@
-{ stdenv, yafu-unwrapped, bash }:
+{ writeShellApplication, coreutils, yafu-unwrapped }:
 
 let
   pname = "yafu";
   version = yafu-unwrapped.version;
+
+  app = writeShellApplication {
+    name = pname;
+
+    runtimeInputs = [ coreutils ];
+
+    text = ''
+      WORKDIR=$(mktemp -d)
+      pushd "$WORKDIR"
+
+      cp ${yafu-unwrapped}/bin/yafu .
+      cp ${yafu-unwrapped}/bin/yafu.ini .
+      chmod +w ./*
+      ./yafu "$@"
+
+      popd
+      rm -rfI "$WORKDIR"
+    '';
+  };
 in
 
-stdenv.mkDerivation {
+app.overrideAttrs (oldAttrs: {
   inherit pname version;
-  inherit yafu-unwrapped;
-
-  buildInputs = [ yafu-unwrapped bash ];
-
-  dontUnpack = true;
-
-  installPhase = ''
-    runHook preInstall
-
-    mkdir -p $out/bin
-
-    cat > $out/bin/yafu <<'EOF'
-    #!${bash}/bin/bash
-    set -euo pipefail
-    IFS=$'\n\t'
-    WORKDIR=$(mktemp -d)
-    pushd $WORKDIR
-    cp ${yafu-unwrapped}/bin/yafu .
-    cp ${yafu-unwrapped}/bin/yafu.ini .
-    chmod +w ./*
-    ./yafu "$@"
-    popd
-    rm -rfI $WORKDIR
-    EOF
-
-    chmod +x $out/bin/yafu
-
-    runHook postInstall
-  '';
-}
+  name = "${pname}-${version}";
+})
