@@ -30,6 +30,8 @@ jobs:
           nix_on_tmpfs: true
           nix_conf: |
             experimental-features = nix-command flakes
+            enforce-determinism = true
+            repeat = 2
 
       - uses: nixbuild/nixbuild-action@v12
         with:
