@@ -59,8 +59,11 @@
         };
 
         callPackage = path: overrides:
-          let f = import path;
-          in f ((builtins.intersectAttrs (builtins.functionArgs f) (pkgs // flakePkgs)) // overrides);
+          let
+            f = import path;
+            inherit (builtins) functionArgs intersectAttrs;
+          in
+            f ((intersectAttrs (functionArgs f) (pkgs // flakePkgs)) // overrides);
 
       in {
 
