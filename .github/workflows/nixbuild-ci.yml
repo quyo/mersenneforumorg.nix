@@ -15,6 +15,11 @@ jobs:
     secrets:
       nixbuild_ssh_key: ${{ secrets.NIXBUILD_SSH_KEY }}
     with:
+      pre_build_script: |
+        NIX_CONF_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/nix/nix.conf"
+        echo "enforce-determinism = true" >> "$NIX_CONF_FILE"
+        echo "repeat = 2" >> "$NIX_CONF_FILE"
+        cat "$NIX_CONF_FILE"
       filter_builds: '.top_attr == "packages"'
 #     filter_builds: '.attr == "ci-build"'
 
@@ -27,11 +32,9 @@ jobs:
 
       - uses: nixbuild/nix-quick-install-action@v16
         with:
-          nix_on_tmpfs: true
+          nix_on_tmpfs: false
           nix_conf: |
             experimental-features = nix-command flakes
-            enforce-determinism = true
-            repeat = 2
 
       - uses: nixbuild/nixbuild-action@v12
         with:
