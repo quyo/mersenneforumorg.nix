@@ -1,4 +1,4 @@
-final: prev:
+version: final: prev:
 
 with final; {
 
@@ -21,5 +21,29 @@ with final; {
 # primesieve = callPackage ./packages/primesieve { };
 # primecount = callPackage ./packages/primecount { };  ---  rebuilds / breaks sage via primecountpy
   primesum = callPackage ./packages/primesum { };
+
+  mersenneforumorg = symlinkJoin
+  {
+    name = "mersenneforumorg-${version}";
+    preferLocalBuild = false;
+    allowSubstitutes = true;
+
+    paths = [
+      aliqueit
+      cado-nfs
+      ecm-git
+      ecmpy
+      factmsievepy
+      ggnfs
+      gmp
+      msieve-svn
+      primecount
+      primesieve
+      primesum
+      yafu
+      ysieve
+      ytools
+    ];
+  };
 
 }
