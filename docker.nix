@@ -8,7 +8,7 @@
 let
 
   contents = [
-    mersenneforumorg,
+    mersenneforumorg
     qshell-minimal
   ];
 
