@@ -1,30 +1,15 @@
 {
-  aliqueit,
   bashInteractive,
-  cado-nfs,
   dockerTools,
-  ecm-git,
-  msieve-svn,
-  primecount,
-  primesieve,
-  primesum,
-  qshell-minimal,
-  yafu
+  mersenneforumorg,
+  qshell-minimal
 }:
 
 let
 
   contents = [
+    mersenneforumorg,
     qshell-minimal
-
-    aliqueit
-    cado-nfs
-    ecm-git
-    msieve-svn
-    primecount
-    primesieve
-    primesum
-    yafu
   ];
 
 in
