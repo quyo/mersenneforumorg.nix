@@ -22,12 +22,9 @@ with final; {
 # primecount = callPackage ./packages/primecount { };  ---  rebuilds / breaks sage via primecountpy
   primesum = callPackage ./packages/primesum { };
 
-  mersenneforumorg = symlinkJoin
+  mersenneforumorg = buildEnv
   {
     name = "mersenneforumorg-${version}";
-    preferLocalBuild = false;
-    allowSubstitutes = true;
-
     paths = [
       aliqueit
       cado-nfs
