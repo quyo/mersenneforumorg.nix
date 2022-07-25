@@ -65,7 +65,7 @@
             ecm-git msieve-svn ggnfs ytools ysieve yafu yafu-unwrapped
             ecmpy factmsievepy aliqueit aliqueit-unwrapped
             cado-nfs
-            primesieve primecount primesum
+          # primesieve primecount primesum
             mersenneforumorg;
         };
 

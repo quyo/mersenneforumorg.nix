@@ -20,7 +20,7 @@ with final; {
 
 # primesieve = callPackage ./packages/primesieve { };
 # primecount = callPackage ./packages/primecount { };  ---  rebuilds / breaks sage via primecountpy
-  primesum = callPackage ./packages/primesum { };
+# primesum = callPackage ./packages/primesum { };
 
   mersenneforumorg = buildEnv
   {
@@ -34,9 +34,9 @@ with final; {
       ggnfs
       gmp
       msieve-svn
-      primecount
-      primesieve
-      primesum
+#     primecount
+#     primesieve
+#     primesum
       yafu
       ysieve
       ytools

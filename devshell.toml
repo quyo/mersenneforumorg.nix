@@ -2,10 +2,10 @@
 name = "mersenneforumorg.nix"
 
 
-[[commands]]
-package = "primesieve"
-category = "prime numbers"
-help = "fast prime number generator"
+# [[commands]]
+# package = "primesieve"
+# category = "prime numbers"
+# help = "fast prime number generator"
 
 # [[commands]]
 # package = "primecount"
