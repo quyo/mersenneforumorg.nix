@@ -31,7 +31,7 @@ jobs:
       - name: Initialize configuration
         working-directory: .
         run: |
-          mkdir ${XDG_CONFIG_HOME:-$HOME/.config}/nixpkgs/overlays/
+          mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/nixpkgs/overlays/
           cat > ${XDG_CONFIG_HOME:-$HOME/.config}/nixpkgs/overlays/prefer-remote-fetch.nix <<EOF
             final: prev: prev.prefer-remote-fetch final prev
           EOF
