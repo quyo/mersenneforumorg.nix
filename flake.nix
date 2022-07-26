@@ -35,7 +35,6 @@
     in
     {
       overlays = {
-        prefer-remote-fetch = import ./prefer-remote-fetch.nix;
         default = import ./overlay.nix version;
       };
     }

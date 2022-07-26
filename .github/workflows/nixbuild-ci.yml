@@ -28,14 +28,6 @@ jobs:
     runs-on: ubuntu-22.04
     needs: build
     steps:
-      - name: Initialize configuration
-        working-directory: .
-        run: |
-          mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/nixpkgs/overlays/
-          cat > ${XDG_CONFIG_HOME:-$HOME/.config}/nixpkgs/overlays/prefer-remote-fetch.nix <<EOF
-            final: prev: prev.prefer-remote-fetch final prev
-          EOF
-
       - uses: actions/checkout@v3
 
       - uses: nixbuild/nix-quick-install-action@v16
