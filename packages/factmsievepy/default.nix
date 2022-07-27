@@ -1,11 +1,11 @@
-{ stdenv, msieve, ggnfs, python2 }:
+{ stdenvNoCC, msieve, ggnfs, python2 }:
 
 let
   pname = "factmsievepy";
   version = "0.86";
 in
 
-stdenv.mkDerivation {
+stdenvNoCC.mkDerivation {
   inherit pname version;
   inherit msieve ggnfs;
 

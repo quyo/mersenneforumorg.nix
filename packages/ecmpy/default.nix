@@ -1,11 +1,11 @@
-{ stdenv, ecm, python2 }:
+{ stdenvNoCC, ecm, python2 }:
 
 let
   pname = "ecmpy";
   version = "0.44";
 in
 
-stdenv.mkDerivation {
+stdenvNoCC.mkDerivation {
   inherit pname version;
   inherit ecm;
 
