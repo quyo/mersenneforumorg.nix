@@ -9,4 +9,5 @@ let
   };
   compat = import compatSrc { src = ./.; };
 in
-  compat.defaultNix
+
+compat.defaultNix

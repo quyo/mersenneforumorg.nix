@@ -1,17 +1,14 @@
-{
-  bashInteractive,
-  dockerTools,
-  mersenneforumorg,
-  qshell-minimal
+{ bashInteractive
+, dockerTools
+, mersenneforumorg
+, qshell-minimal
 }:
 
 let
-
   contents = [
     mersenneforumorg
     qshell-minimal
   ];
-
 in
 
 dockerTools.buildLayeredImage {

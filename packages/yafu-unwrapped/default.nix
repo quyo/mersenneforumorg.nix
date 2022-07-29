@@ -1,11 +1,5 @@
 { stdenv, fetchgit, gmp, ecm, msieve, ytools, ysieve, ggnfs }:
 
-let
-  pname = "yafu-unwrapped";
-  version = "git-" + builtins.substring 0 8 commit;
-  commit = "ca48c65b66a465a5a47cf7da0301f4ef56227573";
-in
-
 assert gmp == ecm.gmp;
 assert gmp == msieve.gmp;
 assert gmp == ysieve.gmp;
@@ -13,6 +7,12 @@ assert gmp == ggnfs.gmp;
 assert ecm == msieve.ecm;
 assert ytools == ysieve.ytools;
 assert null == msieve.zlib;
+
+let
+  pname = "yafu-unwrapped";
+  version = "git-" + builtins.substring 0 8 commit;
+  commit = "ca48c65b66a465a5a47cf7da0301f4ef56227573";
+in
 
 stdenv.mkDerivation {
   inherit pname version;

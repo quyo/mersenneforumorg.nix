@@ -18,29 +18,29 @@ with final; {
 
   cado-nfs = callPackage ./packages/cado-nfs { ecm = ecm-git; };
 
-# primesieve = callPackage ./packages/primesieve { };
-# primecount = callPackage ./packages/primecount { };  ---  rebuilds / breaks sage via primecountpy
-# primesum = callPackage ./packages/primesum { };
+  # primesieve = callPackage ./packages/primesieve { };
+  # primecount = callPackage ./packages/primecount { };  ---  rebuilds / breaks sage via primecountpy
+  # primesum = callPackage ./packages/primesum { };
 
   mersenneforumorg = buildEnv
-  {
-    name = "mersenneforumorg-${version}";
-    paths = [
-      aliqueit
-      cado-nfs
-      ecm-git
-      ecmpy
-      factmsievepy
-      ggnfs
-      gmp
-      msieve-svn
-#     primecount
-#     primesieve
-#     primesum
-      yafu
-      ysieve
-      ytools
-    ];
-  };
+    {
+      name = "mersenneforumorg-${version}";
+      paths = [
+        aliqueit
+        cado-nfs
+        ecm-git
+        ecmpy
+        factmsievepy
+        ggnfs
+        gmp
+        msieve-svn
+        # primecount
+        # primesieve
+        # primesum
+        yafu
+        ysieve
+        ytools
+      ];
+    };
 
 }

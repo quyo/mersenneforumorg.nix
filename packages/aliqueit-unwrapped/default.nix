@@ -1,11 +1,5 @@
 { stdenv, fetchgit, gmp, ecm, ecmpy, yafu-unwrapped, msieve, factmsievepy }:
 
-let
-  pname = "aliqueit-unwrapped";
-  version = "git-" + builtins.substring 0 8 commit;
-  commit = "1c97023777735dd81200ad6f36ca9a8d1865f879";
-in
-
 assert gmp == ecm.gmp;
 assert gmp == yafu-unwrapped.gmp;
 assert gmp == msieve.gmp;
@@ -14,6 +8,12 @@ assert ecm == yafu-unwrapped.ecm;
 assert ecm == msieve.ecm;
 assert msieve == yafu-unwrapped.msieve;
 assert msieve == factmsievepy.msieve;
+
+let
+  pname = "aliqueit-unwrapped";
+  version = "git-" + builtins.substring 0 8 commit;
+  commit = "1c97023777735dd81200ad6f36ca9a8d1865f879";
+in
 
 stdenv.mkDerivation {
   inherit pname version;

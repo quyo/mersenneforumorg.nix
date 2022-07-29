@@ -1,9 +1,8 @@
 {
-
   inputs = {
-#   nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
+    # nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
     nixpkgs.url = "github:nixos/nixpkgs/d4f600ec45d9a14d41a4d5a61c034fa1bd819f88";
-#   nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    # nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/f4a4245e55660d0a590c17bab40ed08a1d010787";
 
     flake-utils.url = "github:numtide/flake-utils";
@@ -31,7 +30,7 @@
           inherit (builtins) substring;
           inherit (self) lastModifiedDate;
         in
-          "0.${substring 0 8 lastModifiedDate}.${substring 8 6 lastModifiedDate}.${self.shortRev or "dirty"}";
+        "0.${substring 0 8 lastModifiedDate}.${substring 8 6 lastModifiedDate}.${self.shortRev or "dirty"}";
     in
     {
       overlays = {
@@ -41,7 +40,6 @@
     //
     flake-utils.lib.eachSystem [ flake-utils.lib.system.x86_64-linux ] (system:
       let
-
         flakeOverlays = (builtins.attrValues self.overlays) ++ [
           devshell.overlay
           qnixpkgs.overlays.qshell
@@ -65,37 +63,38 @@
             ecm-git msieve-svn ggnfs ytools ysieve yafu yafu-unwrapped
             ecmpy factmsievepy aliqueit aliqueit-unwrapped
             cado-nfs
-          # primesieve primecount primesum
+            # primesieve primecount primesum
             mersenneforumorg;
         };
 
         callPackage = pkgs.lib.callPackageWith (pkgs // flakePkgs);
         callPackageNonOverridable = fn: args: removeAttrs (callPackage fn args) [ "override" "overrideDerivation" ];
-
-      in {
-
+      in
+      {
         packages = flakePkgs
-          //
-          {
-            default = pkgs.linkFarmFromDrvs "mersenneforumorg-default-${version}" (map (x: flakePkgs.${x}) (builtins.attrNames flakePkgs));
+        //
+        {
+          default = pkgs.linkFarmFromDrvs "mersenneforumorg-default-${version}" (map (x: flakePkgs.${x}) (builtins.attrNames flakePkgs));
 
-            ci-build = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-ci-build-${version}"; });
-            ci-publish = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-ci-publish-${version}"; });
+          ci-build = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-ci-build-${version}"; });
+          ci-publish = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-ci-publish-${version}"; });
 
-            docker = (callPackage ./docker.nix { }).overrideAttrs (oldAttrs: { name = "mersenneforumorg-docker-${version}"; });
-          };
+          docker = (callPackage ./docker.nix { }).overrideAttrs (oldAttrs: { name = "mersenneforumorg-docker-${version}"; });
+        };
 
         apps = callPackageNonOverridable ./apps.nix { };
 
         devShells = {
           default =
-            let inherit (pkgs.devshell) mkShell importTOML;
-            in mkShell {
+            let
+              inherit (pkgs.devshell) mkShell importTOML;
+            in
+            mkShell {
               imports = [ (importTOML ./devshell.toml) ];
             };
         };
 
+        formatter = pkgs.nixpkgs-fmt;
       }
     );
-
 }
