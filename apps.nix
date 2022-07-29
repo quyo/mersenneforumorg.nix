@@ -5,9 +5,6 @@
 , ecmpy
 , factmsievepy
 , msieve-svn
-, primecount
-, primesieve
-, primesum
 , yafu
 , yafu-unwrapped
 , ysieve
