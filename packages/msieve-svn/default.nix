@@ -4,7 +4,7 @@ assert gmp == ecm.gmp;
 
 let
   pname = "msieve";
-  version = "svn-" + revision;
+  version = "0.20220127." + revision;
   revision = "1044";
 in
 

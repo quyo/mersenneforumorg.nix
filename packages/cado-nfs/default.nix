@@ -4,7 +4,7 @@ assert gmp == ecm.gmp;
 
 let
   pname = "cado-nfs";
-  version = "git-" + builtins.substring 0 8 commit;
+  version = "0.20220706." + builtins.substring 0 8 commit;
   commit = "f3a13e8a2c9b65d1853cb1205c58efe72954d1e5";
 in
 

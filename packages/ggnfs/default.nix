@@ -2,7 +2,7 @@
 
 let
   pname = "ggnfs";
-  version = "git-" + builtins.substring 0 8 commit;
+  version = "0.20110423." + builtins.substring 0 8 commit;
   commit = "3490572ca8671635a1b8d13a28aef3e34a657fc7";
 in
 

@@ -2,7 +2,7 @@
 
 let
   pname = "ecm";
-  version = "git-" + builtins.substring 0 8 commit;
+  version = "0.20220613." + builtins.substring 0 8 commit;
   commit = "5663e00cb4880a6ee6393eb9067e9eea201098d4";
 in
 

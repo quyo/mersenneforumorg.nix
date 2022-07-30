@@ -2,7 +2,7 @@
 
 let
   pname = "ytools";
-  version = "git-" + builtins.substring 0 8 commit;
+  version = "0.20210912." + builtins.substring 0 8 commit;
   commit = "bf7f82d05ec9b74b3b1c0b99a734c321d7eb540c";
 in
 

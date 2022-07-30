@@ -2,7 +2,7 @@
 
 let
   pname = "primecount";
-  version = "git-" + builtins.substring 0 8 commit;
+  version = "0.20220627." + builtins.substring 0 8 commit;
   commit = "2439921b2cd656b396bc2cda24d9e3e177171f6f";
 in
 

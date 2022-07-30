@@ -2,7 +2,7 @@
 
 let
   pname = "primesieve";
-  version = "git-" + builtins.substring 0 8 commit;
+  version = "0.20220627." + builtins.substring 0 8 commit;
   commit = "6b13e217df6932f4714048cead12579fc34e1d32";
 in
 

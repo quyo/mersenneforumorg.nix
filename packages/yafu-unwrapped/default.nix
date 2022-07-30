@@ -10,7 +10,7 @@ assert null == msieve.zlib;
 
 let
   pname = "yafu-unwrapped";
-  version = "git-" + builtins.substring 0 8 commit;
+  version = "0.20220505." + builtins.substring 0 8 commit;
   commit = "ca48c65b66a465a5a47cf7da0301f4ef56227573";
 in
 

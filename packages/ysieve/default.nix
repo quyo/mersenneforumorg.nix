@@ -2,7 +2,7 @@
 
 let
   pname = "ysieve";
-  version = "git-" + builtins.substring 0 8 commit;
+  version = "0.20210916." + builtins.substring 0 8 commit;
   commit = "275fb23f05fd870f3b3afba00c8dbe63994b434f";
 in
 

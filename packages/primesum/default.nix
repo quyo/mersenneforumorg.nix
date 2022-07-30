@@ -2,7 +2,7 @@
 
 let
   pname = "primesum";
-  version = "git-" + builtins.substring 0 8 commit;
+  version = "0.20220617." + builtins.substring 0 8 commit;
   commit = "ac22b966a560a42c1872c02beb8ac4d00d8d88d4";
 in
 
