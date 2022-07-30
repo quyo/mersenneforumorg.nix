@@ -24,3 +24,7 @@ then
     git diff $NIX_FILES
     git add $NIX_FILES
 fi
+
+
+nix flake show --legacy . >/dev/null
+nix build --no-link .#ci-build
