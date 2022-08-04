@@ -1,4 +1,4 @@
-{ writeShellApplication, coreutils, yafu-unwrapped, aliqueit-unwrapped }:
+{ lib, writeShellApplication, coreutils, yafu-unwrapped, aliqueit-unwrapped }:
 
 assert yafu-unwrapped == aliqueit-unwrapped.yafu-unwrapped;
 
@@ -28,7 +28,4 @@ let
   };
 in
 
-app.overrideAttrs (oldAttrs: {
-  inherit pname version;
-  name = "${pname}-${version}";
-})
+lib.q.overrideName app pname version

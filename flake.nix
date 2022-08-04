@@ -1,21 +1,21 @@
 {
   inputs = {
-    # nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
-    nixpkgs.url = "github:nixos/nixpkgs/d4f600ec45d9a14d41a4d5a61c034fa1bd819f88";
+    # nixpkgs-stable.url = "github:nixos/nixpkgs/release-22.05";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/d4f600ec45d9a14d41a4d5a61c034fa1bd819f88";
     # nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/f4a4245e55660d0a590c17bab40ed08a1d010787";
 
     flake-utils.url = "github:numtide/flake-utils";
 
     devshell.url = "github:numtide/devshell";
-    devshell.inputs.nixpkgs.follows = "nixpkgs";
+    devshell.inputs.nixpkgs.follows = "nixpkgs-stable";
     devshell.inputs.flake-utils.follows = "flake-utils";
 
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
 
     qnixpkgs.url = "github:Samayel/qnixpkgs";
-    qnixpkgs.inputs.nixpkgs.follows = "nixpkgs";
+    qnixpkgs.inputs.nixpkgs-stable.follows = "nixpkgs-stable";
     qnixpkgs.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
     qnixpkgs.inputs.flake-utils.follows = "flake-utils";
     qnixpkgs.inputs.devshell.follows = "devshell";
@@ -23,78 +23,56 @@
     qnixpkgs.inputs.qnixpkgs.follows = "qnixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, flake-utils, devshell, qnixpkgs, ... }:
-    let
-      version =
-        let
-          inherit (builtins) substring;
-          inherit (self) lastModifiedDate;
-        in
-        "0.${substring 0 8 lastModifiedDate}.${substring 8 6 lastModifiedDate}.${self.shortRev or "dirty"}";
-    in
+  outputs = { self, nixpkgs-stable, nixpkgs-unstable, flake-utils, devshell, qnixpkgs, ... }:
     {
       overlays = {
-        default = import ./overlay.nix version;
+        default = import ./overlay.nix self;
       };
     }
     //
     flake-utils.lib.eachSystem [ flake-utils.lib.system.x86_64-linux ] (system:
       let
-        flakeOverlays = (builtins.attrValues self.overlays) ++ [
+        inherit (pkgs-stable) lib linkFarmFromDrvs;
+        inherit (pkgs-stable.devshell) importTOML mkShell;
+
+        version = lib.q.flakeVersion self;
+
+        overlays = (builtins.attrValues self.overlays) ++ [
           devshell.overlay
+          qnixpkgs.overlays.lib
           qnixpkgs.overlays.qshell
         ];
 
-        # can now use "pkgs.package" or "pkgs.unstable.package"
-        unstableOverlay = final: prev: {
-          unstable = import nixpkgs-unstable {
-            inherit system;
-            overlays = flakeOverlays;
-          };
-        };
+        pkgs-stable = import nixpkgs-stable { inherit overlays system; };
+        pkgs-unstable = import nixpkgs-unstable { inherit overlays system; };
 
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ unstableOverlay ] ++ flakeOverlays;
-        };
-
-        flakePkgs = {
-          inherit (pkgs)
+        flake-pkgs = {
+          inherit (pkgs-stable)
             ecm-git msieve-svn ggnfs ytools ysieve yafu yafu-unwrapped
             ecmpy factmsievepy aliqueit aliqueit-unwrapped
             cado-nfs
             # primesieve primecount primesum
             mersenneforumorg;
         };
-
-        callPackage = pkgs.lib.callPackageWith (pkgs // flakePkgs);
-        callPackageNonOverridable = fn: args: removeAttrs (callPackage fn args) [ "override" "overrideDerivation" ];
       in
       {
-        packages = flakePkgs
-        //
+        packages = flake-pkgs //
         {
-          default = pkgs.linkFarmFromDrvs "mersenneforumorg-default-${version}" (map (x: flakePkgs.${x}) (builtins.attrNames flakePkgs));
+          default = linkFarmFromDrvs "mersenneforumorg-default-${version}" (builtins.attrValues flake-pkgs);
 
-          ci-build = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-ci-build-${version}"; });
-          ci-publish = self.packages.${system}.default.overrideAttrs (oldAttrs: { name = "mersenneforumorg-ci-publish-${version}"; });
+          ci-build = linkFarmFromDrvs "mersenneforumorg-ci-build-${version}" (builtins.attrValues flake-pkgs);
+          ci-publish = linkFarmFromDrvs "mersenneforumorg-ci-publish-${version}" (builtins.attrValues flake-pkgs);
 
-          docker = (callPackage ./docker.nix { }).overrideAttrs (oldAttrs: { name = "mersenneforumorg-docker-${version}"; });
+          docker = lib.q.overrideName (lib.callPackageWith (pkgs-stable // flake-pkgs) ./docker.nix { }) "mersenneforumorg-docker" version;
         };
 
-        apps = callPackageNonOverridable ./apps.nix { };
+        apps = lib.q.removeOverrideFuncs (lib.callPackageWith flake-pkgs ./apps.nix { });
 
         devShells = {
-          default =
-            let
-              inherit (pkgs.devshell) mkShell importTOML;
-            in
-            mkShell {
-              imports = [ (importTOML ./devshell.toml) ];
-            };
+          default = mkShell { imports = [ (importTOML ./devshell.toml) ]; };
         };
 
-        formatter = pkgs.nixpkgs-fmt;
+        formatter = pkgs-stable.nixpkgs-fmt;
       }
     );
 }
