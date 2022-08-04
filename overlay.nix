@@ -1,7 +1,7 @@
 self: final: prev:
 
 let
-  version = final.lib.q.flakeVersion self;
+  version = final.lib.q.flake.version self;
 in
 
 with final; {

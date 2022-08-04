@@ -32,10 +32,9 @@
     //
     flake-utils.lib.eachSystem [ flake-utils.lib.system.x86_64-linux ] (system:
       let
-        inherit (pkgs-stable) lib linkFarmFromDrvs;
-        inherit (pkgs-stable.devshell) importTOML mkShell;
+        inherit (pkgs-stable) lib;
 
-        version = lib.q.flakeVersion self;
+        version = lib.q.flake.version self;
 
         overlays = (builtins.attrValues self.overlays) ++ [
           devshell.overlay
@@ -56,23 +55,13 @@
         };
       in
       {
-        packages = flake-pkgs //
-        {
-          default = linkFarmFromDrvs "mersenneforumorg-default-${version}" (builtins.attrValues flake-pkgs);
+        packages = lib.q.flake.packages "mersenneforumorg" version flake-pkgs { } ./docker.nix;
 
-          ci-build = linkFarmFromDrvs "mersenneforumorg-ci-build-${version}" (builtins.attrValues flake-pkgs);
-          ci-publish = linkFarmFromDrvs "mersenneforumorg-ci-publish-${version}" (builtins.attrValues flake-pkgs);
+        apps = lib.q.flake.apps flake-pkgs ./apps.nix;
 
-          docker = lib.q.overrideName (lib.callPackageWith (pkgs-stable // flake-pkgs) ./docker.nix { }) "mersenneforumorg-docker" version;
-        };
+        devShells = lib.q.flake.devShells ./devshell.toml;
 
-        apps = lib.q.removeOverrideFuncs (lib.callPackageWith flake-pkgs ./apps.nix { });
-
-        devShells = {
-          default = mkShell { imports = [ (importTOML ./devshell.toml) ]; };
-        };
-
-        formatter = pkgs-stable.nixpkgs-fmt;
+        formatter = lib.q.flake.formatter;
       }
     );
 }
