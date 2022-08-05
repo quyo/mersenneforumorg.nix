@@ -1,4 +1,4 @@
-{ stdenv, fetchgit, gmp, ecm, ecmpy, yafu-unwrapped, msieve, factmsievepy }:
+{ stdenv, fetchFromGitHub, gmp, ecm, ecmpy, yafu-unwrapped, msieve, factmsievepy }:
 
 assert gmp == ecm.gmp;
 assert gmp == yafu-unwrapped.gmp;
@@ -19,8 +19,9 @@ stdenv.mkDerivation {
   inherit pname version;
   inherit gmp ecm ecmpy yafu-unwrapped msieve factmsievepy;
 
-  src = fetchgit {
-    url = "https://github.com/ChristianBeer/aliqueit.git";
+  src = fetchFromGitHub {
+    owner = "ChristianBeer";
+    repo = "aliqueit";
     rev = commit;
     sha256 = "pKDklTKAigZRi9O1/65ynxPW7d3piI0wQIGdvuolVco=";
   };

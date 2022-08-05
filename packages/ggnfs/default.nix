@@ -1,4 +1,4 @@
-{ stdenv, fetchgit, m4, gmp }:
+{ stdenv, fetchFromGitHub, m4, gmp }:
 
 let
   pname = "ggnfs";
@@ -10,8 +10,9 @@ stdenv.mkDerivation {
   inherit pname version;
   inherit gmp;
 
-  src = fetchgit {
-    url = "https://github.com/radii/ggnfs";
+  src = fetchFromGitHub {
+    owner = "radii";
+    repo = "ggnfs";
     rev = commit;
     sha256 = "pLCtpHWYZ+R0CMfjQ9wceVV69ATzAcCX4zo0c+Fhgx8=";
   };

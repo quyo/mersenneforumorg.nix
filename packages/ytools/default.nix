@@ -1,4 +1,4 @@
-{ stdenv, fetchgit }:
+{ stdenv, fetchFromGitHub }:
 
 let
   pname = "ytools";
@@ -9,8 +9,9 @@ in
 stdenv.mkDerivation {
   inherit pname version;
 
-  src = fetchgit {
-    url = "https://github.com/bbuhrow/ytools";
+  src = fetchFromGitHub {
+    owner = "bbuhrow";
+    repo = "ytools";
     rev = commit;
     sha256 = "FoUqgUi/ofkqRaUnDIxL6j2/eSX7zOma54rvP/tv1UA=";
   };

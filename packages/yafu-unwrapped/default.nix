@@ -1,4 +1,4 @@
-{ stdenv, fetchgit, gmp, ecm, msieve, ytools, ysieve, ggnfs }:
+{ stdenv, fetchFromGitHub, gmp, ecm, msieve, ytools, ysieve, ggnfs }:
 
 assert gmp == ecm.gmp;
 assert gmp == msieve.gmp;
@@ -18,8 +18,9 @@ stdenv.mkDerivation {
   inherit pname version;
   inherit gmp ecm msieve ytools ysieve ggnfs;
 
-  src = fetchgit {
-    url = "https://github.com/bbuhrow/yafu";
+  src = fetchFromGitHub {
+    owner = "bbuhrow";
+    repo = "yafu";
     rev = commit;
     sha256 = "ZBYBzIxOiGb+5CRxpF2ubt2goEtvaDIUyutK5fMk7EU=";
   };

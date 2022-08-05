@@ -1,4 +1,4 @@
-{ stdenv, fetchgit, gmp, ytools }:
+{ stdenv, fetchFromGitHub, gmp, ytools }:
 
 let
   pname = "ysieve";
@@ -10,8 +10,9 @@ stdenv.mkDerivation {
   inherit pname version;
   inherit gmp ytools;
 
-  src = fetchgit {
-    url = "https://github.com/bbuhrow/ysieve";
+  src = fetchFromGitHub {
+    owner = "bbuhrow";
+    repo = "ysieve";
     rev = commit;
     sha256 = "k+j1Cs+TPnXCnYolgpMibFrXECjMLrmGm8AUGUooGpk=";
   };

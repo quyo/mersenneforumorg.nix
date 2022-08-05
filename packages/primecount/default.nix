@@ -1,4 +1,4 @@
-{ stdenv, fetchgit, cmake }:
+{ stdenv, fetchFromGitHub, cmake }:
 
 let
   pname = "primecount";
@@ -9,8 +9,9 @@ in
 stdenv.mkDerivation {
   inherit pname version;
 
-  src = fetchgit {
-    url = "https://github.com/kimwalisch/primecount";
+  src = fetchFromGitHub {
+    owner = "kimwalisch";
+    repo = "primecount";
     rev = commit;
     sha256 = "0VJmYHbPlgMlio6zhHn2j1gW7CAaPBt1pWtEbnZGr7I=";
   };
