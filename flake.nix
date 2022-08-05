@@ -45,14 +45,27 @@
         pkgs-stable = import nixpkgs-stable { inherit overlays system; };
         pkgs-unstable = import nixpkgs-unstable { inherit overlays system; };
 
-        flake-pkgs = {
-          inherit (pkgs-stable)
-            ecm-git msieve-svn ggnfs ytools ysieve yafu yafu-unwrapped
-            ecmpy factmsievepy aliqueit aliqueit-unwrapped
-            cado-nfs
-            # primesieve primecount primesum
-            mersenneforumorg;
-        };
+        flake-pkgs-mapper = lib.q.mapPkgs
+          [
+            "aliqueit"
+            "aliqueit-unwrapped"
+            "cado-nfs"
+            "ecm-git"
+            "ecmpy"
+            "factmsievepy"
+            "ggnfs"
+            "mersenneforumorg"
+            "msieve-svn"
+            # "primecount"
+            # "primesieve"
+            # "primesum"
+            "yafu"
+            "yafu-unwrapped"
+            "ysieve"
+            "ytools"
+          ];
+
+        flake-pkgs = flake-pkgs-mapper pkgs-stable "" "";
       in
       {
         packages = lib.q.flake.packages "mersenneforumorg" version flake-pkgs { } ./docker.nix;
