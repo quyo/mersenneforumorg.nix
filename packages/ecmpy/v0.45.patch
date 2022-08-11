@@ -1,0 +1,1630 @@
+diff --git a/ecm.py b/ecm.py
+index 2cde402..6c14626 100644
+--- a/ecm.py
++++ b/ecm.py
+@@ -45,14 +45,31 @@
+ 
+ from __future__ import print_function
+ 
+-import os, random, re, functools, string, socket, signal, smtplib
+-import time, subprocess, gzip, glob, math, tempfile, datetime, sys
+-import atexit, threading, collections, multiprocessing, platform
+-
+-try:
+-    from Queue import Queue, Empty
+-except ImportError:
+-    from queue import Queue, Empty  # python 3.x
++import argparse
++import atexit
++import collections
++import datetime
++import functools
++import glob
++import gzip
++import math
++import multiprocessing
++import os
++import platform
++import random
++import re
++import shutil
++import signal
++import smtplib
++import socket
++import string
++import subprocess
++import sys
++import tempfile
++import threading
++import time
++
++from queue import Queue, Empty  # python 3.x
+ 
+ 
+ 
+@@ -69,17 +86,21 @@ except ImportError:
+ #       With that, we will look in the given location for the ecm binary.  ie:
+ #       If ECM_PATH = '/usr/local/bin/', then we will look for the ecm binary in '/usr/local/bin/<ecm-binary>'
+ #       If ECM_PATH = 'd:/math/ecm_py/', then we will look for the ecm binary in 'd:/math/ecm_py/<ecm-binary>'
+-ECM_PATH = './'
++ECM_PATH = os.environ.get('ECM_PATH', './')
+ 
+ # Default number of ecm threads to launch
+ # Can be overidden on the command line with -threads N
+ ECM_THREADS = 2
+ 
+ 
++# Logfile
++LOGNAME = os.environ.get('LOGNAME', 'ecm_py.log')
++
++
+ # If we encounter a composite factor and/or cofactor, should we continue
+ # doing the rest of the requested curves, or stop when we find one factor
+ # 0 to keep factoring composites, 1 to stop work after finding a factor
+-find_one_factor_and_stop = 1
++find_one_factor_and_stop = 0
+ 
+ 
+ # This controls how often (in seconds) python reads in job files from the hard drive
+@@ -177,7 +198,7 @@ v_verbose = 2
+ vv_verbose = 3
+ ecm_args = '' # original arguments passed in to ecm
+ ecm_args1 = '' # modified arguments for ecm to spread work out
+-ecm_args2 = '' # modified arguments for ecm to spread work out
++ecm_args2 = '' # same as ecm_args1 but with a possible different curves count
+ intNumThreads = ECM_THREADS # default number of instances of gmp-ecm to run...
+ ecm_job = '' # name of the job file we are currently working on...
+ ecm_c = 1 # default number of curves to run...
+@@ -192,7 +213,7 @@ ecm_s1_completed = 0
+ prev_ecm_s1_completed = 0
+ intResume = 0
+ output_file = ''
+-save_to_file = False 
++save_to_file = False
+ number_list = []
+ resume_file = ''
+ job_start = time.time()
+@@ -218,7 +239,6 @@ tt_stg1_per_file = {}
+ tt_stg2_per_file = {}
+ e_total = -1.0
+ next_email_interval = 60*email_interval_minutes
+-LOGNAME = 'ecm_py.log'
+ next_log_interval = log_interval_seconds # log progress info once per day...
+ inp_file = '' # used with the -inp option...
+ ecm_resume_finished_file = '' # will be set to a filename when using the -resume option...
+@@ -235,31 +255,27 @@ job_start = 0
+ 
+ # Utillity Routines
+ 
+-# return a number, abbreviated if the number is long and we're quiet
+-def abbreviate(s, length = 42):
+-    return s if (VERBOSE >= v_verbose or len(s) <= length) else s[:18] + "..." + s[-18:]
+-
+-# print an error message and exit
+-
+ def die(x, rv = -1):
++  '''print an error message and exit'''
+   output(x)
+   sys.exit(rv)
+ 
++
+ def sig_exit(x, y):
+   print('\n')
+   die('Signal caught. Terminating...')
+ 
+-# obtain a float or an int from a string
+ 
+-def get_nbr(s):
+-  m = re.match('[+-]?([0-9]*\.)?[0-9]+([eE][+-]?[0-9]+)?', s)
+-  return float(s) if m else int(s)
++def abbreviate(s, length = 42):
++  '''return a number, abbreviated if the number is long and we're quiet'''
++  return s if (VERBOSE >= v_verbose or len(s) <= length) else s[:18] + "..." + s[-18:]
++
+ 
+ def is_nbr(s):
+   try:
+     float(s)
+     return True
+-  except:
++  except ValueError:
+     return False
+ 
+ def is_nbr_range(s):
+@@ -268,145 +284,58 @@ def is_nbr_range(s):
+     float(ss[0])
+     float(ss[1])
+     return True
+-  except:
++  except (ValueError, IndexError):
+     return False
+ 
+-# check for command to gmp-ecm or ecm.py that require numeric arguments...
++
+ def is_ecm_cmd(s):
+-  if s in ['-x0', '-y0', '-param', '-sigma', '-A', '-torsion', '-k',
++  '''check for command to gmp-ecm or ecm.py that require numeric arguments...'''
++  return s in ['-x0', '-y0', '-param', '-sigma', '-A', '-torsion', '-k',
+            '-power', '-dickson', '-c', '-base2', '-maxmem', '-stage1time',
+-           '-i', '-I', '-ve', '-B2scale', '-go', '-threads', '-pollfiles']:
+-    return True
+-  else:
+-    return False
++           '-i', '-I', '-ve', '-B2scale', '-go', '-threads', '-pollfiles']
+ 
+-# delete a file (unlink equivalent)
+ 
+ def delete_file(fn):
++  '''delete a file (unlink equivalent)'''
+   if os.path.exists(fn):
+     try:
+       os.unlink(fn)
+     except WindowsError:
+       pass
+ 
+-# GREP on a list of text lines
+-
+-def grep_l(pat, lines):
+-  r = []
+-  for l in lines:
+-    if re.search(pat, l):
+-      r += [re.sub('\r|\n', ' ', l)]
+-  return r
+-
+-# GREP on a named file
+-
+-def grep_f(pat, file_path):
+-  if not os.path.exists(file_path):
+-    raise IOError
+-  else:
+-    r = []
+-    with open(file_path, 'r') as in_file:
+-      for l in in_file:
+-        if re.search(pat, l):
+-          r += [re.sub('\r|\n', ' ', l)]
+-    return r
+-
+-# concatenate file 'app' to file 'to'
+ 
+ def cat_f(app, to):
++  '''concatenate file "app" to file "to"'''
+   if os.path.exists(app):
+     if VERBOSE >= v_verbose:
+       print('-> appending {0:s} to {1:s}'.format(app, to))
+     with open(to, 'ab') as out_file:
+       with open(app, 'rb') as in_file:
+-        buf = in_file.read(8192)
+-        while buf:
+-          out_file.write(buf)
+-          buf = in_file.read(8192)
+-
+-# compress file 'fr' to file 'to'
+-
+-def gzip_f(fr, to):
+-  if not os.path.exists(fr):
+-    raise IOError
+-  else:
+-    if VERBOSE >= v_verbose:
+-      print('compressing {0:s} to {1:s}'.format(fr, to))
+-    with open(fr, 'rb') as in_file:
+-      out_file = gzip.open(to, 'ab')
+-      out_file.writelines(in_file)
+-      out_file.close()
+-
+-# remove end of line characters from a line
+-
+-def chomp(s):
+-  p  = len(s)
+-  while p and (s[p - 1] == '\r' or s[p - 1] == '\n'):
+-    p -= 1
+-  return s[0:p]
+-
+-# remove comment lines
++        shutil.copyfileobj(in_file, out_file)
+ 
+-def chomp_comment(s):
+-  return re.sub('#.*', '', s)
+ 
+-# remove all white space in a line
+-
+-def remove_ws(s):
+-  return re.sub('\s', '', s)
+-
+-# normalize paths so that they all have '/', and no '\' or '\\'...
+-def npath(str):
+-  new_str = str.replace('\\', '/')
+-  while '//' in new_str: new_str = new_str.replace('//', '/')
+-  return new_str
+-
+-# produce date/time string for log
+-
+-# Thu May 29 09:05:25 2014
+-def date_time_string() :
+-  dt = datetime.datetime.today()
+-  return dt.strftime('%a %b %d %H:%M:%S %Y ')
+-
+-# Thu 2014/05/29 09:05:25 UTC
+ def time_utc_string():
++  '''Thu 2014/05/29 09:05:25 UTC'''
+   return time.strftime("%a %Y/%m/%d %H:%M:%S UTC ", time.gmtime())
+ 
+ 
+-# write string to log(s):
+-
+ def write_string_to_log(s):
++  '''write string to log(s):'''
+   with open(LOGNAME, 'a') as out_f:
+-    list = s.split('\n')
+-    for line in list:
++    s_lines = s.split('\n')
++    for line in s_lines:
+       print(time_utc_string() + line, file = out_f)
+ 
++
+ def output(s, console = True, log = True):
+   if console and VERBOSE >= v_normal:
+     print(s)
+   if log:
+     write_string_to_log(s)
+ 
+-# find processor speed
+-
+-def proc_speed():
+-  if os.sys.platform.startswith('win'):
+-    if sys.version_info[0] == 2:
+-      from _winreg import OpenKey, QueryValueEx, HKEY_LOCAL_MACHINE
+-    else:
+-      from winreg import OpenKey, QueryValueEx, HKEY_LOCAL_MACHINE
+-    h = OpenKey(HKEY_LOCAL_MACHINE, 
+-                'HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0')      
+-    mhz = float(QueryValueEx(h, '~MHz')[0])
+-  else:
+-    tmp = grep_f('cpu MHz\s+:\s+', '/proc/cpuinfo')
+-    m = re.search('\s*cpu MHz\s+:\s+([0-9]+)', tmp[0])
+-    mhz = float(m.group(1)) if m else 0.0
+-  return 1e-3 * mhz
+-
+-# check that an executable file exists
+ 
+ def check_binary(exe):
++  '''check that an executable file exists'''
+   if CHECK_BINARIES:
+     if not os.path.exists(ECM_PATH + exe + EXE_SUFFIX):
+       print('-> Could not find the program: {0:s}'.format(ECM_PATH + exe + EXE_SUFFIX))
+@@ -421,10 +350,10 @@ def check_binary(exe):
+       print('-> ECM_PATH = {0:s}'.format(ECM_PATH))
+       sys.exit(-1)
+ 
+-# run an executable file
+ 
+ def run_exe(exe, args, inp = '', in_file = None, out_file = None,
+             log = True, display = VERBOSE, wait = True, resume = 0):
++  '''run an executable file'''
+   al = {} if VERBOSE else {'creationflags' : 0x08000000 }
+   if sys.platform.startswith('win'):
+ #   priority_high = 0x00000080
+@@ -486,126 +415,6 @@ def run_exe(exe, args, inp = '', in_file = None, out_file = None,
+   else:
+     return p.wait()
+ 
+-# generate a list of primes
+-
+-def prime_list(n):
+-  sieve = [False, False] + [True] * (n - 1)
+-  for i in range(2, int(n ** 0.5) + 1):
+-    if sieve[i]:
+-      m = n // i - i
+-      sieve[i * i : n + 1 : i] = [False] * (m + 1)
+-  return [i for i in range(n + 1) if sieve[i]]
+-
+-# greatest common divisor
+-
+-def gcd(x, y):
+-  if x == 0:
+-    return y
+-  elif y == 0:
+-    return x
+-  else:
+-    return gcd(y % x, x)
+-
+-# Miller Rabin 'probable prime' test
+-#
+-# returns 'False' if 'n' is definitely composite
+-# returns 'True' if 'n' is prime or probably prime
+-#
+-# 'r' is the number of trials performed
+-
+-def miller_rabin(n, r = 10):
+-  t = n - 1
+-  s = 0
+-  while not t & 1:
+-    t >>= 1
+-    s += 1
+-  for i in range(r):
+-    a = random.randint(2, n - 1)
+-    x = pow(a, t, n)
+-    if x != 1 and x != n - 1:
+-      for j in range(s - 1):
+-        x = (x * x) % n
+-        if x == 1:
+-          return False
+-        if x == n - 1:
+-          break
+-      else:
+-        return False
+-  return True
+-
+-# determine if n is probably prime - return
+-#    0 if n is 0, 1 or composite
+-#    1 if n is probably prime
+-#    2 if n is definitely prime
+-
+-def probable_prime_p(nn, r):
+-  n = abs(nn)
+-  if n <= 2:
+-    return 2 if n == 2 else 0
+-
+-  # trial division
+-  for p in prime_list(1000):
+-    if not n % p:
+-      return 2 if n == p else 0
+-    if p * p > n:
+-      return 2
+-
+-  # Fermat test
+-  if pow(random.randint(2, n - 1), n - 1, n) != 1:
+-    return 0
+-
+-  # Miller-Rabin test
+-  return 1 if miller_rabin(n, r) else 0
+-
+-# count the number of lines in a file
+-
+-def linecount(file_path):
+-  count = 0
+-  if not os.path.exists(file_path):
+-    die('can\'t open {0:s}'.format(file_path))
+-  with open(file_path, 'r') as in_file:
+-    for l in in_file:
+-      count += 1
+-  return count
+-
+-# Read the log file to see if we've found all the prime
+-# divisors of N yet.
+-
+-def get_primes(fact_p):
+-
+-  with open(LOGNAME, 'r') as in_f:
+-    for l in in_f:
+-      l = chomp(l)
+-      m1 = re.search('r\d+=(\d+)\s+', l)
+-      if m1:
+-        val = int(m1.group(1))
+-        if len(val) > 1 and  len(val) < len(fact_p['ndivfree']):
+-          # Is this a prime divisor or composite?
+-          m2 = re.search('\(pp(\d+)\)', l)
+-          if m2:
+-            # If this is a prime we don't already have, add it.
+-            found = False
+-            for p in fact_p['primes']:
+-              if val == p:
+-                found = True
+-            if not found:
+-              fact_p['primes'].append(val)
+-          else:
+-            fact_p['comps'].append(val)
+-
+-  # Now, try to figure out if we have all the prime factors:
+-  x = itertools.reduce(lambda x,y : x * y, fact_p['primes'], 1)
+-  if x == fact_p['ndivfree'] or probab_prime_p(fact_p['ndivfree'] // x, 10):
+-    if x != fact_p['ndivfree']:
+-      fact_p['primes'].append(fact_p['ndivfree'] // x)
+-    for p in fact_p['primes']:
+-      cs = '-> p: {0:s} (pp{1:d})'.format(val, len(val))
+-      output(cs)
+-    return True
+-  # Here, we could try to recover other factors by division,
+-  # but until we have a primality test available, this would
+-  # be pointless since we couldn't really know if we're done.
+-  return False
+ 
+ def sendemail(from_addr, to_addr_list, cc_addr_list,
+               subject, message,
+@@ -665,6 +474,7 @@ def terminate_ecm_threads():
+     del procs[:]
+     #print('-> ecm terminated')
+ 
++
+ def start_ecm_threads():
+   global procs, ecm_c, intNumThreads, ecm_job, actual_num_threads
+ 
+@@ -686,86 +496,47 @@ def start_ecm_threads():
+         .format(num, '' if (num == 1) else 's'))
+   write_string_to_log('-> Starting {0:d} instance{1:s} of GMP-ECM...'.format(num, '' if (num == 1) else 's'))
+ 
+-  i = 0
+-  if intNumThreads == 1:
++  assert intNumThreads >= 1
++
++  count, remainder = divmod(ecm_c, intNumThreads)
++  for i in range(intNumThreads):
+     file_name = ecm_job_prefix + '_t' + str(i).zfill(2) + '.txt'
+-    procs.append(run_exe(ECM, ecm_args1, in_file = ecm_job, out_file = file_name, wait = False))
+-  else:
+-    if ecm_c == 0:
+-      while i < intNumThreads:
+-        file_name = ecm_job_prefix + '_t' + str(i).zfill(2) + '.txt'
++    if ecm_c == 0 or i >= remainder:
+         procs.append(run_exe(ECM, ecm_args1, in_file = ecm_job, out_file = file_name, wait = False))
+-        i += 1
+-    elif ecm_c < intNumThreads:
+-      remainder = ecm_c%intNumThreads
+-      while i < remainder:
+-        file_name = ecm_job_prefix + '_t' + str(i).zfill(2) + '.txt'
+-        procs.append(run_exe(ECM, ecm_args2, in_file = ecm_job, out_file = file_name, wait = False))
+-        i += 1
+     else:
+-      remainder = ecm_c%intNumThreads
+-      while i < remainder:
+-        file_name = ecm_job_prefix + '_t' + str(i).zfill(2) + '.txt'
+         procs.append(run_exe(ECM, ecm_args2, in_file = ecm_job, out_file = file_name, wait = False))
+-        i += 1
+-      while i < intNumThreads:
+-        file_name = ecm_job_prefix + '_t' + str(i).zfill(2) + '.txt'
+-        procs.append(run_exe(ECM, ecm_args1, in_file = ecm_job, out_file = file_name, wait = False))
+-        i += 1
+ 
+   print(' ')
+   signal.signal(signal.SIGINT, old_handler)
+ 
+-def compare_ecm_args(test_args):
+-  global ecm_args
++def get_ecm_type_and_count(args):
++  parts = args.split(' ')
+ 
+-  # To see if two job command lines are the same
+-  # Make sure they are for the same job type
+-  # Make sure they are for the same number of curves
+-  # Make sure they are for the same B1
+-  data1 = ecm_args.split(' ')
+-  data2 = test_args.split(' ')
+-  type1 = 'ecm'
+-  type2 = 'ecm'
+-  count1 = 0
+-  count2 = 0
++  ecm_type = 'ecm'
++  count = 0
++  # TODO(Seth): This is suboptimal, but inherited, logic
++  B1 = parts[-1]
+ 
+-  i = 0
+-  while i < len(data1):
+-    if data1[i] == '-pm1':
+-      type1 = 'pm1'
+-    elif data1[i] == '-pp1':
+-      type1 = 'pp1'
+-    elif data1[i] == '-c':
+-      count1 = int(data1[i+1])
+-      i += 1
+-    i += 1
++  for i, part in enumerate(parts):
++    if part in ('-pm1', '-pp1'):
++      ecm_type = part
++    elif part == '-c':
++      assert len(parts) > i, (i, parts)
++      count = parts[i+1]
+ 
+-  i = 0
+-  while i < len(data2):
+-    if data2[i] == '-pm1':
+-      type2 = 'pm1'
+-    elif data2[i] == '-pp1':
+-      type2 = 'pp1'
+-    elif data2[i] == '-c':
+-      count2 = int(data2[i+1])
+-      i += 1
+-    i += 1
+-
+-  if type1 != type2:
+-    return False
+-  if count1 != count2:
+-    return False
+-  if data1[-1] != data2[-1]:
+-    return False
++  return (ecm_type, count, B1)
+ 
+-  return True
++def compare_ecm_args(args1, args2):
++  """Check if ecm type (ecm, pm1, pp1), curve count (-c X) and B1 (last arg) match"""
++  return get_ecm_type_and_count(args1) == get_ecm_type_and_count(args2)
+ 
+ 
+-# Perform some very basic input checking to make sure we don't
+-# evaluate python code that might do bad things to a users system.
+ def is_valid_input(instr):
+-  mystr = str(instr)
++  '''
++  Perform some very basic input checking to make sure we don't
++  evaluate python code that might do bad things to a users system.
++  '''
++  mystr = str(instr).strip()
+ 
+   if len(mystr) == 0:
+     return False
+@@ -773,28 +544,14 @@ def is_valid_input(instr):
+   if mystr[0] == '#':
+     return False
+ 
+-  for i in range(len(mystr)):
+-    if mystr[i] not in ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','x', 
+-                        ' ','+','-','*','/','^','%','!','#','.','(',')','{','}','[',']','"']:
+-      return False
+-  # If we get down here, all the characters must have been valid...
+-  return True
++  return all(char in string.hexdigits or char in ('x +-*/^%!#.(){}[]"') for char in mystr)
+ 
+ 
+-# (old) Function to count number of decimal digits of an input number
+-def num_digits_old(n):
+-  n = eval(n.replace('^', '**').replace('/', '//'))
+-  if n > 0:
+-    digits = int(math.log10(n))+1
+-  elif n == 0:
+-    digits = 1
+-  else:
+-    digits = int(math.log10(-n))+2 # +1 if you don't count the '-'
+-  return digits
+-
+-# We will run a throwaway curve to have the ecm binary tell us how many digits are in the number...
+-# This is useful because the ecm binary already handles everything, including ^, !, and #
+ def num_digits(n):
++  '''
++  We will run a throwaway curve to have the ecm binary tell us how many digits are in the number...
++  This is useful because the ecm binary already handles everything, including ^, !, and #
++  '''
+   cmd = [ECM_PATH + ECM + EXE_SUFFIX, '10']
+   p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+   out, err = p.communicate(n.encode())
+@@ -807,7 +564,140 @@ def num_digits(n):
+       return int(line[j+1:k])
+   # if we don't find the digits line, we'll just report -1...
+   return -1
+-      
++
++
++def parse_ecm_timing_line(line):
++  """Parse ecm output line to GMP-ECM info, Step1 timing, Step2 timing, Using, or Found factor"""
++
++  if line.startswith(('Step 1 took', 'Step 2 took')):
++    # Ignore the rare negative time reported by ecm...
++    time = max(0, float(line.split(' took ')[1][:-2])) / 1000
++    return (int(line[5]), time)
++
++  return None
++
++
++def parse_job_file(job_filename):
++  """
++  Parse a job file (traditional jobXXXX_tTT.txt) to:
++    (using line, version info, time_str)
++    [(using B1,B2,sigma, Found factor + factor), ...]
++    (number of Step 1 complete, sum Step 1 time)
++    (number of Step 2 complete, sum Step 2 time)
++  """
++  # TODO(seth): deduplicate this with get_out_fin, find_factor_info
++  # TODO(seth): deduplicate this with find_work_done
++
++  # These will be the last matching using, version, timing
++  using_info = None
++  version_info = None
++  time_info = None
++
++  # List of tuple of (using, found lines)
++  factors_found = []
++  step1_complete = 0
++  step1_timing = 0.0
++  step2_complete = 0
++  step2_timing = 0.0
++
++  with open(job_filename, 'r') as in_file:
++    # the number of curves completed = the number of "Step 2" lines in the file
++    for line in in_file:
++      line = line.strip()
++
++      if line.startswith('Using'):
++        using_info = line # if a factor was found, this will contain its B1, B2, and sigma...
++      elif line.startswith('GMP-ECM'):
++        version_info = line
++
++      elif line.startswith('APR primality'):
++        # Appears between Factor found and factor.
++        continue
++
++      elif 'Factor found' in last_line:
++        # TODO(seth): Old code was worried about a line starting with "Run"
++        # between "Found found" and factor line. No idea what that was avoiding.
++        assert not line.startswith('Run'), ("PLEASE REPORT TO THE FORUM: " + line)
++        factors_found.append((using_info, last_line + '\n' + line))
++
++      else:
++        parsed = parse_ecm_timing_line(line)
++        if parsed:
++          if parsed[0] == 1:
++            step1_complete += 1
++            step1_timing += parsed[1]
++            time_info = line
++          elif parsed[0] == 2:
++            step2_complete += 1
++            step2_timing += parsed[1]
++            time_info += "\n" + line
++
++      last_line = line
++
++  return (
++      (using_info, version_info, time_info),
++      factors_found,
++      (step1_complete, step1_timing),
++      (step2_complete, step2_timing)
++  )
++
++
++def handle_enqueue_composite_factors(factors_found, job_filename):
++  """
++  Find any new composites in factors_found / job_filename
++
++  Potentially add them to remaining_composites
++  """
++  global factor_found, factor_value, factor_data, remaining_composites
++
++  # TODO(seth): Consider what to do when multiple factors are found
++  if len(factors_found) > 1:
++    output('Multiple factors found simultaneously!!!')
++    for _, factor_lines in factors_found:
++      output("->  " + factor_lines.replace("\n", ", "))
++    output('')
++
++  # TODO(seth): deduplicate with find_work_done
++  factor_in_this_file = False
++  for using_data, factor_lines in factors_found:
++    factor_lines = factor_lines.strip()
++    if not factor_in_this_file and not factor_found:
++        factor_found = True
++        factor_in_this_file = True
++
++        factor_data = using_data
++        factor_value = factor_lines
++
++        # If either of the factor or cofactor were reported to be composite, and
++        # we have find_one_factor_and_stop=0, then we'll add the composite number(s)
++        # to our list and continue with the remaining number of curves on the number(s)
++
++# ********** Factor found in step 1: 214497496343260938348887
++# Found prime factor of 24 digits: 214497496343260938348887
++# Composite cofactor ((637#+1)/601751640263)/214497496343260938348887 has 227 digits
++
++# ********** Factor found in step 1: 34174462117410724171159
++# Found composite factor of 23 digits: 34174462117410724171159
++# Prime cofactor ((2^1223-1))/34174462117410724171159 has 346 digits
++        if find_one_factor_and_stop == 0 and 'composite factor' in factor_lines.lower():
++          composite = factor_lines.split(' ')[-1]
++          remaining_composites += '~' + composite
++
++  # Kinda awful taste, but go looking for any composite cofactors in the file
++  if find_one_factor_and_stop == 0:
++    with open(job_filename, 'r') as in_file:
++      # the number of curves completed = the number of "Step 2" lines in the file
++      for line in in_file:
++        line = line.strip()
++        if 'composite cofactor' in line.lower():
++          composite = line.split(' ')[2]
++          if ("~" + composite) not in remaining_composites:
++            remaining_composites += '~' + composite
++
++            # FIXME: N/101 and N/1001 can both be queued (by seperate threads) consider how to fix.
++            # TODO(seth): Should try to find the smallest cofactor in the file
++            # Only do this once (so similiar cofactors don't queue many times)
++            break
+ 
+ 
+ def read_resume_file(res_file):
+@@ -827,6 +717,7 @@ def read_resume_file(res_file):
+     data = in_file.readline().strip().split('#')[1] # line 2 should be the command line
+     data_args = data.strip()
+     data = in_file.readline().split(' ') # line 3 should be the curves previously completed, tt_stg1, tt_stg2...
++    # the number of curves completed = the number of "Step 2" lines in the file
+     prev_ecm_c_completed = int(data[1])
+     prev_ecm_s1_completed = prev_ecm_c_completed
+     prev_tt_stg1 = float(data[2])
+@@ -834,29 +725,23 @@ def read_resume_file(res_file):
+ 
+   job_file_prefix = ecm_job.split('.')[0]
+   for f in glob.iglob(job_file_prefix + '_t*'):
+-    with open(f, 'r') as in_file:
+-      # the number of curves completed = the number of "Step 2" lines in the file
+-      for line in in_file:
+-        line = line.strip()
+-        if line.startswith('Step 1'):
+-          this_time = (float(line.split(' took ')[1][:-2])/1000.0)
+-          if this_time >= 0: # make sure we don't average in the rare negative time reported by ecm...
+-            prev_tt_stg1 += this_time
+-          prev_ecm_s1_completed += 1
+-        elif line.startswith('Step 2'):
+-          this_time = (float(line.split(' took ')[1][:-2])/1000.0)
+-          if this_time >= 0: # make sure we don't average in the rare negative time reported by ecm...
+-            prev_tt_stg2 += this_time
+-          prev_ecm_c_completed += 1
+-        elif line.startswith('Using'):
+-          factor_data = line # if a factor was found, this will contain its B1, B2, and sigma...
+-        elif line.find('Factor found') >= 0:
+-          factor_found = True
+-          factor_value = line
+-        elif factor_found and not line.startswith('Run'):
+-          factor_value += '\n' + line
+-      if factor_found:
+-        return True
++    info, factors_found, (step1_complete, step1_timing), (step2_complete, step2_timing) = parse_job_file(f)
++
++    if info[0]:
++      factor_data = info[0]
++
++    prev_ecm_s1_completed += step1_complete
++    prev_tt_stg1 += step1_timing
++    prev_ecm_c_completed += step2_complete
++    prev_tt_stg2 += step2_timing
++
++    if factors_found:
++      assert len(factors_found) == 1, ("Found multiple factors!!!", factors_found)
++      factor_found = True
++      # NOTE(seth): Slightly new behavior if more than one factors is found
++      factor_data = "\n".join(using for using, found in factors_found)
++      factor_value = "\n".join(found for using, found in factors_found)
++      return True
+ 
+     delete_file(f)
+ 
+@@ -1090,74 +975,54 @@ def gather_work_done(job_file):
+     # using file sizes to reduce the number of times we read in the whole file for processing
+     if file_sizes[f] != os.path.getsize(f) or first_getsizes:
+       file_sizes[f] = os.path.getsize(f) #update the file size...
++
++      # the number of curves completed = the number of "Step 2" lines in the file (or +1 if a factor was found in Step 1)
+       ecm_c_completed_per_file[f] = 0
+       ecm_s1_completed_per_file[f] = 0
+       tt_stg1_per_file[f] = 0.0
+       tt_stg2_per_file[f] = 0.0
+-      with open(f, 'r') as in_file:
+-        first_file_with_factor = False
+-        # the number of curves completed = the number of "Step 2" lines in the file (or +1 if a factor was found in Step 1)
+-        for line in in_file:
+-          line = line.strip()
+-          if need_version_info and line.startswith('GMP-ECM'):
+-            version_info = line
+-            need_version_info = False
+-            output('{0:s}'.format(version_info))
+-          elif line.startswith('Step 1'):
+-            this_time = (float(line.split(' took ')[1][:-2])/1000.0)
+-            if this_time >= 0: # make sure we don't average in the rare negative time reported by ecm...
+-              tt_stg1_per_file[f] += this_time
+-            ecm_s1_completed_per_file[f] += 1
+-            time_str = line
+-          elif line.startswith('Step 2'):
+-            this_time = (float(line.split(' took ')[1][:-2])/1000.0)
+-            if this_time >= 0: # make sure we don't average in the rare negative time reported by ecm...
+-              tt_stg2_per_file[f] += this_time
+-            ecm_c_completed_per_file[f] += 1
+-            time_str += '\n' + line
+-          elif line.startswith('Using'):
+-            if not factor_found:
+-              factor_data = line # if a factor was found, this will contain its B1, B2, and sigma...
+-            if need_using_line:
+-              ud = line.split(',')
+-              if len(ud) < 3: continue
+-              using_line = '{0:s},{1:s},{2:s}, {3:d} thread{4:s}'.format(ud[0],ud[1],ud[2],actual_num_threads, '' if (actual_num_threads == 1) else 's')
+-              output(using_line)
+ 
++      info, factors_found, (step1_complete, step1_timing), (step2_complete, step2_timing) = parse_job_file(f)
++
++      if info[0]:
++        factor_data = info[0]
++        if need_using_line:
++          ud = info[0].split(',')
++          if len(ud) < 3: continue
++          using_line = '{0:s},{1:s},{2:s}, {3:d} thread{4:s}'.format(ud[0],ud[1],ud[2],actual_num_threads, '' if (actual_num_threads == 1) else 's')
++          output(using_line)
++      if need_version_info and info[1]:
++        version_info = info[1]
++        need_version_info = False
++        output('{0:s}'.format(version_info))
+ #____________________________________________________________________________
+ # Curves Complete |   Average seconds/curve   |    Runtime    |      ETA
+ #-----------------|---------------------------|---------------|--------------
+ #  2114 of   6000 | Stg1  2983s | Stg2 693.5s |  22d 12:27:08 |  41d 08:37:51
++        output('____________________________________________________________________________')
++        output(' Curves Complete |   Average seconds/curve   |    Runtime    |      ETA')
++        output('-----------------|---------------------------|---------------|--------------')
++        need_using_line = False
++      if info[2]:
++        time_str = info[2]
+ 
+-              output('____________________________________________________________________________')
+-              output(' Curves Complete |   Average seconds/curve   |    Runtime    |      ETA')
+-              output('-----------------|---------------------------|---------------|--------------')
+-              need_using_line = False
+-          elif not first_file_with_factor and not factor_found and line.find('Factor found') >= 0:
+-            factor_found = True
+-            first_file_with_factor = True
+-            factor_value = line
+-            if ecm_s1_completed_per_file[f] != ecm_c_completed_per_file[f]:
+-              # output(' *** Step 1 count != Step 2 count, but a factor was found.  Incrementing ecm_c_completed.')
+-              ecm_c_completed_per_file[f] += 1
+-          elif first_file_with_factor and not line.startswith('Run'):
+-            # If either of the factor or cofactor were reported to be composite, and
+-            # we have find_one_factor_and_stop=0, then we'll add the composite number(s)
+-            # to our list and continue with the remaining number of curves on the number(s)
+-# ********** Factor found in step 1: 214497496343260938348887
+-# Found prime factor of 24 digits: 214497496343260938348887
+-# Composite cofactor ((637#+1)/601751640263)/214497496343260938348887 has 227 digits
+-            if find_one_factor_and_stop == 0 and 'composite factor' in line.lower():
+-              remaining_composites += '~' + line.split(' ')[-1]
+-            if find_one_factor_and_stop == 0 and 'composite cofactor' in line.lower():
+-              remaining_composites += '~' + line.split(' ')[2]
+-            factor_value += '\n' + line
+-            terminate_ecm_threads()
+-        #if factor_found:
+-        #  return
++      ecm_s1_completed_per_file[f] += step1_complete
++      tt_stg1_per_file[f] += step1_timing
++
++      ecm_c_completed_per_file[f] += step2_complete
++      tt_stg2_per_file[f] += step2_timing
++
++      if ecm_s1_completed_per_file[f] != ecm_c_completed_per_file[f]:
++        # output(' *** Step 1 count != Step 2 count, but a factor was found.  Incrementing ecm_c_completed.')
++        ecm_c_completed_per_file[f] += len(factors_found)
++
++      handle_enqueue_composite_factors(factors_found, f)
++
++    if factor_found:
++      terminate_ecm_threads()
+ 
+   first_getsizes = False
+-          
++
+ 
+ def monitor_ecm_threads():
+   global procs, ecm_job, factor_found, ecm_c_completed, tt_stg1, tt_stg2, poll_file_delay
+@@ -1196,6 +1061,7 @@ def monitor_ecm_threads():
+     del procs[i]
+   return ret
+ 
++
+ def update_job_file():
+   global ecm_job, ecm_n, ecm_args, prev_ecm_c_completed, prev_tt_stg1, prev_tt_stg2
+ 
+@@ -1204,6 +1070,14 @@ def update_job_file():
+     out_file.write('# {0:s}\n'.format(ecm_args))
+     out_file.write('# {0:d} {1:.3f} {2:.3f}\n'.format(prev_ecm_c_completed, prev_tt_stg1, prev_tt_stg2))
+ 
++
++# TODO(seth): Can this be combined with read_resume_file
++# 95% the same
++#       if save_to_file
++#           cat_f
++#
++#       update_job_file() vs something different
++# slightly different handling of found factors (read_resume_file quits if it finds a factor)
+ def find_work_done():
+   global prev_ecm_c_completed, prev_tt_stg1, prev_tt_stg2, prev_ecm_s1_completed, time_str
+   global factor_found, factor_value, factor_data, ecm_job, ecm_c, job_complete
+@@ -1223,47 +1097,16 @@ def find_work_done():
+ 
+   job_file_prefix = ecm_job.split('.')[0]
+   for f in glob.iglob(job_file_prefix + '_t*'):
+-    with open(f, 'r') as in_file:
+-      first_file_with_factor = False
+-      # the number of curves completed = the number of "Step 2" lines in the file
+-      for line in in_file:
+-        line = line.strip()
+-        if line.startswith('Step 1'):
+-          this_time = (float(line.split(' took ')[1][:-2])/1000.0)
+-          if this_time >= 0: # make sure we don't average in the rare negative time reported by ecm...
+-            prev_tt_stg1 += this_time
+-          prev_ecm_s1_completed += 1
+-          time_str = line
+-        elif line.startswith('Step 2'):
+-          this_time = (float(line.split(' took ')[1][:-2])/1000.0)
+-          if this_time >= 0: # make sure we don't average in the rare negative time reported by ecm...
+-            prev_tt_stg2 += this_time
+-          prev_ecm_c_completed += 1
+-          time_str += '\n' + line
+-        elif line.startswith('Using'):
+-          if not factor_found:
+-            factor_data = line # if a factor was found, this will contain its B1, B2, and sigma...
+-        elif not first_file_with_factor and not factor_found and line.find('Factor found') >= 0:
+-          factor_found = True
+-          first_file_with_factor = True
+-          factor_value = line
+-          if prev_ecm_s1_completed != prev_ecm_c_completed:
+-            prev_ecm_c_completed += 1
+-        elif first_file_with_factor and not line.startswith('Run'):
+-          # If either of the factor or cofactor were reported to be composite, and
+-          # we have find_one_factor_and_stop=0, then we'll add the composite number(s)
+-          # to our list and continue with the remaining number of curves on the number(s)
+-# ********** Factor found in step 1: 214497496343260938348887
+-# Found prime factor of 24 digits: 214497496343260938348887
+-# Composite cofactor ((637#+1)/601751640263)/214497496343260938348887 has 227 digits
+-          if find_one_factor_and_stop == 0 and 'composite factor' in line.lower():
+-            remaining_composites += '~' + line.split(' ')[-1]
+-          if find_one_factor_and_stop == 0 and 'composite cofactor' in line.lower():
+-            remaining_composites += '~' + line.split(' ')[2]
+-          factor_value += '\n' + line
+-      # comment out the following two lines so that we can make sure to count all curves run in all files...
+-      #if factor_found:
+-      #  return
++    info, factors_found, (step1_complete, step1_timing), (step2_complete, step2_timing) = parse_job_file(f)
++    if info[0]:
++      factor_data = info[0]
++
++    prev_ecm_s1_completed += step1_complete
++    prev_tt_stg1 += step1_timing
++    prev_ecm_c_completed += step2_complete
++    prev_tt_stg2 += step2_timing
++
++    handle_enqueue_composite_factors(factors_found, f)
+ 
+     if save_to_file:
+       cat_f(f, output_file)
+@@ -1288,14 +1131,14 @@ def find_work_done():
+ # commented out command line arguments on line 2 (commented with the # symbol)
+ # int(number of curves previously completed) float(total time in stg1) float(total time in stg2)
+ def find_job_file():
+-  global ecm_n, ecm_job
++  global ecm_n, ecm_job, ecm_args
+ 
+   for f in glob.iglob('job*'):
+     with open(f, 'r') as in_file:
+       input1 = in_file.readline().strip()
+       if input1 == ecm_n:
+         input2 = in_file.readline().strip()
+-        if compare_ecm_args(input2):
++        if compare_ecm_args(ecm_args, input2):
+           output('-> Found previous job file {0:s}, will resume work...'.format(f))
+           ecm_job = f
+           return True
+@@ -1320,8 +1163,8 @@ def create_job_file():
+ 
+ 
+ 
+-# Look inside an output file to find out what values GMP-ECM is using...
+ def get_version_info(f):
++  '''Look inside an output file to find out what values GMP-ECM is using...'''
+   global need_version_info, version_info
+ 
+   if not os.path.exists(f): return
+@@ -1335,8 +1178,9 @@ def get_version_info(f):
+         output('{0:s}'.format(version_info))
+         return
+ 
+-# Look inside an output file to find out what values GMP-ECM is using...
++
+ def get_using_line(f):
++  '''Look inside an output file to find out what values GMP-ECM is using...'''
+   global need_using_line, using_line, intNumThreads
+ 
+   if not os.path.exists(f): return
+@@ -1382,8 +1226,8 @@ def get_step2_time(f):
+   return t2_time
+ 
+ 
+-# this function will return a list of each 'B1:param:sigma' that it finds in an output file
+ def get_out_fin(f):
++  '''this function will return a list of each 'B1:param:sigma' that it finds in an output file'''
+   if not os.path.exists(f):
+     return []
+ 
+@@ -1495,6 +1339,8 @@ def gather_resume_work_done():
+     else:
+       retc = threadList[i][1].poll()
+ 
++    # TODO(seth): Dedup with parse_job_file
++
+     if retc == None:
+       # use file sizes to reduce the number of times we read in the whole file for processing
+       if files_sizes[i] != os.path.getsize(threadList[i][4]):
+@@ -1577,7 +1423,7 @@ def gather_resume_work_done():
+       # when we're done with them, delete the temporary input and output files
+       delete_file(threadList[i][3])
+       delete_file(threadList[i][4])
+-      
++
+ 
+   return any_factor_found, any_factor_info
+ 
+@@ -1661,7 +1507,7 @@ def run_ecm_resume_job(p95_b1):
+   # 3) remove each finished line from our list of resume lines...
+   # 4) delete any temporary files from previous resumed work that wasn't completed, ie "resume_job_<ecm_resume_file>_t00.txt" etc...
+   # 5) print info on how many previous resume lines were finished (if any) and how many we have to work on...
+-  # 6) 
++  # 6)
+ 
+   # resume file must exist for us to do any work...
+   if not os.path.exists(ecm_resume_file):
+@@ -2061,10 +1907,249 @@ def run_ecm_resume_job(p95_b1):
+   sys.exit(0)
+ 
+ 
+-# Parse the command line options, we'll change values as necessary
+-# set_args should only be true the first time the program is called
+-# we don't want to override the default args with the args from a resumed job
++def get_argparser():
++    parser = argparse.ArgumentParser()
++    parser.add_argument("-c", type=int, help="Number of curves")
++    parser.add_argument("-maxmem", type=int, help="Maximum amount of memorys")
++    parser.add_argument("-threads", type=int, help="Number of threads to run")
++
++    parser.add_argument("-inp", help="Input file")
++
++    parser.add_argument("-r", metavar="<file>", help="resume a previously interrupted job in <file>")
++    parser.add_argument("-resume", metavar="<resume_file>",
++            help="where <resume_file> is a resume file that can be accepted by GMP-ECM")
++
++    parser.add_argument("-out", metavar="<out_file>",
++            help="each gmp-ecm will output to a different file, thread N writes to tN_<out_file>.txt, etc")
++
++    parser.add_argument("-pollfiles", metavar="n", type=int,
++            help="Read data from job files every n seconds (default {})".format(poll_file_delay))
++
++    # boolean variable
++    parser.add_argument("-one", action="store_true")
++
++    parser.add_argument("-k", type=int, help="Passthough ECM parameter")
++
++    # ECM passthrough variables (see is_ecm_cmd)
++    # why no -y0? what is -t?
++    for arg in ('-x0', '-param', '-sigma', '-A', '-power', '-dickson', '-base2', '-stage1time',
++            '-i', '-I', '-t', '-ve', '-B2scale', '-go'):
++        parser.add_argument(arg, help="Passthrough ECM parameter")
++
++    return parser
++
++def parse_ecm_options_argparse(sargv, new_curves = 0, set_args = False, first = False, quiet = False):
++  '''
++  Parse the command line options, we'll change values as necessary.
++  "set_args" should only be true the first time the program is called
++  we don't want to override the default args with the args from a resumed job
++  '''
++  global ecm_c, intNumThreads, ecm_args, ecm_args1, ecm_args2, ecm_c_has_changed
++  global intResume, output_file, number_list, resume_file, save_to_file, poll_file_delay, inp_file
++  global ecm_resume_file, ecm_resume_job
++  ecm_maxmem = 0
++  ecm_k = 0
++  opt_c = ''
++
++  parser = get_argparser()
++  # TODO: Seth, what unknown args can be expect (other than B1, B2)?
++  args, unknown = parser.parse_known_args(sargv)
++  if 'ecm.py' in unknown[0]: unknown.pop(0)
++
++  if set_args and intResume == 0:
++    ecm_args = ''
++
++  ecm_args1 = ''
++  ecm_args2 = ''
++
++  # Handle setting ecm_c
++  if args.c is not None:
++    if not ecm_c_has_changed:
++        ecm_c = args.c
++    if new_curves > 0:
++        ecm_c = new_curves
++    if set_args:
++        ecm_args += ' -c ' + str(ecm_c)
++
++  if args.maxmem is not None:
++    ecm_maxmem = args.maxmem
++    if set_args: ecm_args += ' -maxmem ' + str(ecm_maxmem)
++
++  if args.threads is not None:
++    intNumThreads = int(args.threads)
++
++  if args.one:
++    # The design of this script is to only find one factor per job
++    # We put this here for the sake of completeness
++    if set_args: ecm_args += ' -one'
++    ecm_args1 += ' -one'
++
++  if args.k is not None:
++    if set_args: ecm_args += ' -k ' + str(args.k)
++    ecm_args1 += ' -k ' + str(args.k)
++    ecm_k = int(args.k)
++
++  arg_dict = vars(args)
++  for arg in ('-x0', '-param', '-sigma', '-A', '-power', '-dickson', '-base2', '-stage1time',
++          '-i', '-I', '-t', '-ve', '-B2scale', '-go'):
++      arg = arg[1:]
++      value = arg_dict.get(arg)
++      if value is not None:
++        flag = " -{} {}".format(arg, value)
++        if set_args: ecm_args += flag
++        ecm_args1 += flag
++
++  if args.inp is not None:
++    inp_file = args.inp
++
++  if args.r is not None:
++    intResume = 1
++    resume_file = args.r
++    if not read_resume_file(resume_file):
++      die('-> *** Error: resume file does not exist: {0:s}'.format(resume_file))
++    if job_complete:
++      die(' ')
++
++  if args.out is not None:
++    output_file = args.out
++    save_to_file = True
++
++  if args.resume is not None:
++    ecm_resume_file = args.resume
++    ecm_resume_job = True
++
++  if args.pollfiles is not None:
++    poll_file_delay = args.pollfiles
++
++  # Final stuff with remaining args
++  for arg in unknown:
++    if is_nbr(arg):
++      # This should only match B1 and B2 options at the "end" of the ecm command line...
++      # If we encounter a number by itself, do not append it to ecm_args here...
++      continue
++    if set_args: ecm_args += ' ' + arg
++    ecm_args1 += ' ' + arg
++
++  if poll_file_delay not in range(1, 86400+1):
++    die('-> *** Error: invalid option for -pollfiles: {}'.format(args.pollfiles))
++  if ecm_c < 0:
++    die('-> *** Error: -c parameter less than zero, quitting.')
++  if ecm_maxmem < 0:
++    die('-> *** Error: -maxmem parameter less than zero, quitting.')
++  if intNumThreads < 1:
++    die('-> Less than one thread specified, quitting.')
++
++
++  # If we are using the "-resume" feature of gmp-ecm, we will make some assumptions about the job...
++  # See comment adjacent to run_ecm_resume_jobs for assumptions and notes.
++  p95_b1 = ''
++  if ecm_resume_job:
++    ecm_args = ''
++    if ecm_k > 0:
++      ecm_args += ' -k {0:d}'.format(ecm_k)
++    if ecm_maxmem > 0:
++      ecm_args += ' -maxmem {0:d}'.format(ecm_maxmem//intNumThreads)
++    if unknown and (is_nbr(unknown[-1]) or is_nbr_range(unknown[-1])):
++      p95_b1 = unknown[-1]
++    if VERBOSE >= v_normal:
++      print('-> Resuming work from resume file: ' + ecm_resume_file)
++      print('-> Spreading the work across ' + str(intNumThreads) + ' thread(s)')
++    run_ecm_resume_job(p95_b1)
++
++
++  # grab numbers to factor and save them for later...
++  if intResume != 1:
++    input_lines = []
++    if not sys.stdin.isatty() and set_args:
++      input_lines = sys.stdin.readlines()
++    elif sys.stdin.isatty() and set_args and inp_file != '':
++      print("inp_file = " + inp_file)
++      with open(inp_file, 'r') as f:
++        input_lines = f.readlines()
++    elif sys.stdin.isatty() and inp_file == '':
++      die('-> *** Error: no input numbers found, quitting.')
++
++    if input_lines and VERBOSE >= v_normal:
++      print('-> Number(s) to factor:')
++    for line in input_lines:
++      line = line.strip().strip('"')
++      if is_valid_input(line):
++        number_list.append(line)
++        if VERBOSE >= v_normal:
++          print('-> {0:s} ({1:d} digits)'.format(line, num_digits(line)))
++      else:
++        print('-> *** Skipping invalid input line: {0:s}'.format(line))
++
++  if intNumThreads >= 1 and set_args == False:
++    if ecm_maxmem > 0:
++      ecm_args1 += ' -maxmem {0:d}'.format(ecm_maxmem//intNumThreads)
++
++  ecm_args2 = ecm_args1
++  if intNumThreads >= 1 and set_args == False:
++    if ecm_c == 0:
++      ecm_args1 += ' -c 0'
++      ecm_args2 += ' -c 0'
++    elif ecm_c != 1:
++      # Here ecm_args1 gets ecm_c // threads, and ecm_args2 gets ecm_c // threads + 1
++      ecm_args1 += ' -c {0:d}'.format(ecm_c//intNumThreads)
++      ecm_args2 += ' -c {0:d}'.format((ecm_c//intNumThreads)+1)
++
++  if (intResume == 0) or (intResume == 1 and first == False):
++    # two trailing numbers: B1 B2
++    # Don't get fooled by ["-param", "123" "<B1>"]
++
++    strB1 = ''
++    strB2 = ''
++    if len(unknown) == 1:
++      # we can only have B1 in this case...
++      if is_nbr(unknown[0]):
++        strB1 = ' ' + unknown[0]
++      else:
++        print('***** ERROR: Unknown B1 value: ' + unknown[1])
++    elif len(unknown) >= 2:
++      # Check for both B1 and B2 here...
++      if is_nbr(unknown[-2]) and is_nbr(unknown[-1]):
++        if len(unknown) >= 3 and is_ecm_cmd(unknown[-3]):
++          # Got get tricked by ["-param" "value" "B1"]
++          strB1 = ' ' + unknown[-1]
++        else:
++          strB1 = ' ' + unknown[-2]
++          strB2 = ' ' + unknown[-1]
++      elif is_nbr(unknown[-1]):
++        strB1 = ' ' + unknown[-1]
++      else:
++        print('***** ERROR: Unknown B1 value; ' + unknown[-1])
++
++    # The last option should be B1, append that here...
++    if strB1 == '' and strB2 == '':
++      die('***** ERROR: Unable to find valid B1/B2 values.')
++
++    if set_args: ecm_args += (strB1 + strB2)
++    ecm_args1 += (strB1 + strB2)
++    ecm_args2 += (strB1 + strB2)
++
++  if intResume == 1:
++    ecm_args = ecm_args1
++
++  if VERBOSE >= v_verbose and not quiet:
++    print('-> Original command line was:')
++    print('-> ' + ecm_args)
++    if intNumThreads == 1:
++      print('-> New command line will be:')
++      print('-> ' + ecm_args1)
++    elif intNumThreads > 1:
++      print('-> New command line(s) will be either:')
++      print('-> ' + ecm_args1)
++      print('-> ' + ecm_args2)
++    print(' ')
++
++
++# This can be removed when parse_ecm_options_argparse has been put through the gauntlet
++# Leaving it for now as a comparison point with parse_ecm_options_argparse
+ def parse_ecm_options(sargv, new_curves = 0, set_args = False, first = False, quiet = False):
++  # use new argparse code
++  return parse_ecm_options_argparse(sargv, new_curves, set_args, first, quiet)
++
+   global ecm_c, intNumThreads, ecm_args, ecm_args1, ecm_args2, ecm_c_has_changed
+   global intResume, output_file, number_list, resume_file, save_to_file, poll_file_delay, inp_file
+   global ecm_resume_file, ecm_resume_job
+@@ -2072,9 +2157,6 @@ def parse_ecm_options(sargv, new_curves = 0, set_args = False, first = False, qu
+   ecm_k = 0
+   opt_c = ''
+ 
+-  #if set_args and intResume == 0:
+-  #  i = 1
+-  #else:
+   i = 0
+   if 'ecm.py' in sargv[0]: sargv = sargv[1:]
+ 
+@@ -2085,153 +2167,90 @@ def parse_ecm_options(sargv, new_curves = 0, set_args = False, first = False, qu
+   ecm_args2 = ''
+ 
+   while i < len(sargv)-1:
+-    myString = sargv[i]
+-    if myString == '-c':
++    arg = sargv[i]
++    next_arg = sargv[i+1] if len(sargv) > i+1 else ""
++
++    if arg == '-c':
++      # XXX: Seth, can someone describe this logic.
++      # ecm_c from -c
++      #   UNLESS we've already subtracted in read_resume_file, find_work_done
++      # XXX: Seth, descibe conditions when new_curves get passed > 0
+       try:
+-        if not ecm_c_has_changed: ecm_c = int(sargv[i+1])
++        if not ecm_c_has_changed: ecm_c = int(next_arg)
+         if new_curves > 0: ecm_c = new_curves
+         if set_args: ecm_args += ' -c ' + str(ecm_c)
+         i = i+1
+       except:
+-        die('-> *** Error: invalid option for -c: {0:s}'
+-            .format(sargv[i+1]))
+-    elif myString == '-maxmem':
++        die('-> *** Error: invalid option for -c: {0:s}'.format(next_arg))
++    elif arg == '-maxmem':
+       try:
+-        ecm_maxmem = int(sargv[i+1])
++        ecm_maxmem = int(next_arg)
+         if set_args: ecm_args += ' -maxmem ' + str(ecm_maxmem)
+         i = i+1
+       except:
+         die('-> *** Error: invalid option for -maxmem: {0:s}'
+-            .format(sargv[i+1]))
+-    elif myString == '-threads':
++            .format(next_arg))
++    elif arg == '-threads':
+       try:
+-        intNumThreads = int(sargv[i+1])
++        intNumThreads = int(next_arg)
+         i = i+1
+       except:
+-        die('-> *** Error: invalid option for -threads: {0:s}'
+-            .format(sargv[i+1]))
+-    elif myString == '-one':
++        die('-> *** Error: invalid option for -threads: {0:s}'.format(next_arg))
++    elif arg == '-one':
+       # The design of this script is to only find one factor per job
+       # We put this here for the sake of completeness
+       if set_args: ecm_args += ' -one'
+       ecm_args1 += ' -one'
+-      ecm_args2 += ' -one'
+-    elif myString == '-x0':
+-      if set_args: ecm_args += ' -x0 ' + sargv[i+1]
+-      ecm_args1 += ' -x0 ' + sargv[i+1]
+-      ecm_args2 += ' -x0 ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-sigma':
+-      if set_args: ecm_args += ' -sigma ' + sargv[i+1]
+-      ecm_args1 += ' -sigma ' + sargv[i+1]
+-      ecm_args2 += ' -sigma ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-A':
+-      if set_args: ecm_args += ' -A ' + sargv[i+1]
+-      ecm_args1 += ' -A ' + sargv[i+1]
+-      ecm_args2 += ' -A ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-k':
+-      if set_args: ecm_args += ' -k ' + sargv[i]
+-      ecm_args1 += ' -k ' + sargv[i+1]
+-      ecm_args2 += ' -k ' + sargv[i+1]
++
++    elif arg == '-k':
++      if set_args: ecm_args += ' -k ' + next_arg
++      ecm_args1 += ' -k ' + next_arg
+       try:
+-        ecm_k = int(sargv[i+1])
++        ecm_k = int(next_arg)
+       except:
+-        die('-> *** Error: invalid option for -k: {0:s}'.format(sargv[i+1]))
+-      i = i+1
+-    elif myString == '-power':
+-      if set_args: ecm_args += ' -power ' + sargv[i+1]
+-      ecm_args1 += ' -power ' + sargv[i+1]
+-      ecm_args2 += ' -power ' + sargv[i+1]
++        die('-> *** Error: invalid option for -k: {0:s}'.format(next_arg))
+       i = i+1
+-    elif myString == '-dickson':
+-      if set_args: ecm_args += ' -dickson ' + sargv[i+1]
+-      ecm_args1 += ' -dickson ' + sargv[i+1]
+-      ecm_args2 += ' -dickson ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-base2':
+-      if set_args: ecm_args += ' -base2 ' + sargv[i+1]
+-      ecm_args1 += ' -base2 ' + sargv[i+1]
+-      ecm_args2 += ' -base2 ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-stage1time':
+-      if set_args: ecm_args += ' -stage1time ' + sargv[i+1]
+-      ecm_args1 += ' -stage1time ' + sargv[i+1]
+-      ecm_args2 += ' -stage1time ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-i':
+-      if set_args: ecm_args += ' -i ' + sargv[i+1]
+-      ecm_args1 += ' -i ' + sargv[i+1]
+-      ecm_args2 += ' -i ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-I':
+-      if set_args: ecm_args += ' -I ' + sargv[i+1]
+-      ecm_args1 += ' -I ' + sargv[i+1]
+-      ecm_args2 += ' -I ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-param':
+-      if set_args: ecm_args += ' -param ' + sargv[i+1]
+-      ecm_args1 += ' -param ' + sargv[i+1]
+-      ecm_args2 += ' -param ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-t':
+-      if set_args: ecm_args += ' -t ' + sargv[i+1]
+-      ecm_args1 += ' -t ' + sargv[i+1]
+-      ecm_args2 += ' -t ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-ve':
+-      if set_args: ecm_args += ' -ve ' + sargv[i+1]
+-      ecm_args1 += ' -ve ' + sargv[i+1]
+-      ecm_args2 += ' -ve ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-B2scale':
+-      if set_args: ecm_args += ' -B2scale ' + sargv[i+1]
+-      ecm_args1 += ' -B2scale ' + sargv[i+1]
+-      ecm_args2 += ' -B2scale ' + sargv[i+1]
+-      i = i+1
+-    elif myString == '-go':
+-      if set_args: ecm_args += ' -go ' + sargv[i+1]
+-      ecm_args1 += ' -go ' + sargv[i+1]
+-      ecm_args2 += ' -go ' + sargv[i+1]
++
++    elif arg in ('-x0', '-sigma', '-A', '-power', '-dickson', '-base2', '-stage1time',
++                 '-i', '-I', '-param', '-t', '-ve', '-B2scale', '-go'):
++      flag = " {} {}".format(arg, next_arg)
++      if set_args: ecm_args += flag
++      ecm_args1 += flag
+       i = i+1
+-    elif myString == '-inp':
+-      inp_file = sargv[i+1]
++
++    elif arg == '-inp':
++      inp_file = next_arg
+       i = i+1
+-    elif myString == '-r':
++    elif arg == '-r':
+       intResume = 1
+-      resume_file = sargv[i+1]
++      resume_file = next_arg
+       if not read_resume_file(resume_file):
+         die('-> *** Error: resume file does not exist: {0:s}'.format(resume_file))
+       if job_complete:
+         die(' ')
+       i = i+1
+-    elif myString == '-out':
+-      output_file = sargv[i+1]
++    elif arg == '-out':
++      output_file = next_arg
+       save_to_file = True
+       i = i+1
+-    elif myString == '-resume':
+-      ecm_resume_file = sargv[i+1]
++    elif arg == '-resume':
++      ecm_resume_file = next_arg
+       ecm_resume_job = True
+       i = i+1
+-    elif myString == '-pollfiles':
++    elif arg == '-pollfiles':
+       try:
+-        poll_file_delay = int(sargv[i+1])
+-        if poll_file_delay < 1:
+-          die('-> *** Error: invalid option for -pollfiles: {0:s}'
+-              .format(sargv[i+1]))
++        poll_file_delay = int(next_arg)
++        assert poll_file_delay >= 1
+         i = i+1
+       except:
+-        die('-> *** Error: invalid option for -pollfiles: {0:s}'
+-            .format(sargv[i+1]))
+-    elif is_nbr(myString):
++        die('-> *** Error: invalid option for -pollfiles: {0:s}'.format(next_arg))
++    elif is_nbr(arg):
+       # This should only match B1 and B2 options at the "end" of the ecm command line...
+       # If we encounter a number by itself, do not append it to ecm_args here...
+       pass
+     elif i > 0:
+       if set_args: ecm_args += ' ' + sargv[i]
+       ecm_args1 += ' ' + sargv[i]
+-      ecm_args2 += ' ' + sargv[i]
+     i = i+1
+ 
+   if ecm_c < 0:
+@@ -2243,29 +2262,7 @@ def parse_ecm_options(sargv, new_curves = 0, set_args = False, first = False, qu
+ 
+ 
+   # If we are using the "-resume" feature of gmp-ecm, we will make some assumptions about the job...
+-  # 1) This is designed to be a _simple_ way to speed up resuming ecm by running several resume jobs in parallel.
+-  #      ie, we will not try to replicate all resume capabilities of gmp-ecm
+-  # 2) If we find identical lines in our resume file, we will only resume one of them and skip the others
+-  #      - If this happens, we will print out a notice to the user (if VERBOSE >= v_normal) so they know what is going on
+-  # 3) We will use the B1 value in the resume file, and not resume with higher values of B1
+-  # 4) We will let gmp-ecm determine which B2 value to use, which can be affected by "-maxmem" and "-k"
+-  # 5) We will try to split up the resume work evenly between the threads.
+-  #     - We will put total/num_threads resume lines into each file, and total%num_threads files will each get one extra line.
+-  #      At the end of a job or when restarting a job, we will write any completed resume lines out to a "finished file"
+-  #      This "finished file" will be used to help us keep track of work done, in case we are interrupted and need to (re)resume later
+-  #      We will query the output files once every poll_file_delay seconds.
+-  #    resume_job_<filename>_inp_t00.txt # input resume file for use by gmp-ecm in thread 0
+-  #    resume_job_<filename>_inp_t01.txt # input resume file for use by gmp-ecm in thread 1
+-  #    ...etc...
+-  #    resume_job_<filename>_out_t00.txt # output file for resume job of gmp-ecm in thread 0
+-  #    resume_job_<filename>_out_t01.txt # output file for resume job of gmp-ecm in thread 1
+-  #    ...etc...
+-  #    resume_job_<filename>_finished.txt # file where we write out each resume line that we have finished with gmp-ecm
+-  #    where <filename> is based on the resume file name, but with any "." characters replaced by a dash.
+-  # 6) Update so we can pass B1 values to gmp-ecm when resuming Prime95 resume files, which don't include B1 info in the resume line...
+-  #    * Important note: Pass in the B1 value you used as a range, if you used B1=43e6 in Prime95, then pass in 43e6-43e6 as B1 here.
+-  #    * If you only pass in 43e6, then gmp-ecm will run all of B1 again for each resume line.
+-  # If we are "-resume"ing, we'll go straight to that function, and not return to the original calling code...
++  # See comment adjacent to run_ecm_resume_jobs for assumptions and notes.
+   p95_b1 = ''
+   if ecm_resume_job:
+     ecm_args = ''
+@@ -2310,16 +2307,19 @@ def parse_ecm_options(sargv, new_curves = 0, set_args = False, first = False, qu
+   elif intResume != 1 and sys.stdin.isatty() and inp_file == '':
+     die('-> *** Error: no input numbers found, quitting.')
+ 
++  if intNumThreads >= 1 and set_args == False:
++    if ecm_maxmem > 0:
++      ecm_args1 += ' -maxmem {0:d}'.format(ecm_maxmem//intNumThreads)
++
++  ecm_args2 = ecm_args1
+   if intNumThreads >= 1 and set_args == False:
+     if ecm_c == 0:
+       ecm_args1 += ' -c 0'
+       ecm_args2 += ' -c 0'
+     elif ecm_c != 1:
++      # Here ecm_args1 gets ecm_c // threads, and ecm_args2 gets ecm_c // threads + 1
+       ecm_args1 += ' -c {0:d}'.format(ecm_c//intNumThreads)
+       ecm_args2 += ' -c {0:d}'.format((ecm_c//intNumThreads)+1)
+-    if ecm_maxmem > 0:
+-      ecm_args1 += ' -maxmem {0:d}'.format(ecm_maxmem//intNumThreads)
+-      ecm_args2 += ' -maxmem {0:d}'.format(ecm_maxmem//intNumThreads)
+ 
+   if (intResume == 0) or (intResume == 1 and first == False):
+     strB1 = ''
+@@ -2350,7 +2350,7 @@ def parse_ecm_options(sargv, new_curves = 0, set_args = False, first = False, qu
+         print('***** ERROR: Unknown B1 value; ' + sargv[-1])
+ 
+     # The last option should be B1, append that here...
+-    if strB1 + strB2 == '':
++    if strB1 == '' and strB2 == '':
+       die('***** ERROR: Unable to find valid B1/B2 values.')
+ 
+     if set_args: ecm_args += (strB1 + strB2)
+@@ -2379,15 +2379,15 @@ def parse_ecm_options(sargv, new_curves = 0, set_args = False, first = False, qu
+ 
+ # str_ver = '0.30'
+ # str_date = '30th Nov 2014'.rjust(13)
+-str_ver = '0.44'
+-str_date = '31st May 2019'.rjust(13)
++str_ver = '0.45'
++str_date = '30st Aug 2021'.rjust(13)
+ 
+ if VERBOSE >= v_normal:
+   print('-> ___________________________________________________________________')
+   print('-> | Running ecm.py, a Python driver for distributing GMP-ECM work   |')
+   print('-> | on a single machine.  It is copyright, 2011-2019, David Cleaver |')
+   print('-> | and is a conversion of factmsieve.py that is Copyright, 2010,   |')
+-  print('-> | Brian Gladman. Version {0:s} (Python 2.6 or later) {1:s} |'.format(str_ver, str_date))
++  print('-> | Brian Gladman. Version {0:s} {1:s} (Python 3)            |'.format(str_ver, str_date))
+   print('-> |_________________________________________________________________|')
+   print(' ')
+ else:
+@@ -2395,7 +2395,7 @@ else:
+ 
+ write_string_to_log('->#############################################################################')
+ write_string_to_log('-> Running ecm.py, version {0:s} ({1:s}) on computer {2:s}'.format(str_ver, str_date, socket.gethostname()))
+-write_string_to_log('-> Command line: ' + npath(sys.executable) + ' ' + ' '.join(sys.argv))
++write_string_to_log('-> Command line: ' + os.path.normpath(sys.executable) + ' ' + ' '.join(sys.argv))
+ 
+ if len(sys.argv) < 2:
+   print('USAGE: python.exe ecm.py [gmp-ecm options] [ecm.py options] B1 [B2] < <in_file>')
+@@ -2463,10 +2463,10 @@ for ecm_n in number_list:
+ 
+   # check to see if this ecm_n is a job we should continue...
+   if ':' in ecm_n:
++    # Searh "find_one_factor_and_stop", happens when we found one factor but are continuning (and have a count of curves)
+     continue_composite = 1
+     tmp_info = ecm_n.split(':')
+     ecm_n = tmp_info[0]
+-    # since we tacked this "-c" option to the end, it should override any earlier value of "-c"
+ 
+   my_str1 = '->============================================================================='
+   my_str2 = '-> Working on number: {0:s} ({1:d} digits)'.format(abbreviate(ecm_n), num_digits(ecm_n))
+@@ -2477,6 +2477,7 @@ for ecm_n in number_list:
+     print(my_str2)
+ 
+   if continue_composite == 1:
++    # XXX: Seth: I believe the point is just to update -c?
+     parse_ecm_options(ecm_args.split(), new_curves = int(tmp_info[1]), quiet = True)
+     create_job_file()
+     intResume = 1
+@@ -2587,6 +2588,7 @@ for ecm_n in number_list:
+       new_curves = 0
+   else:
+ # ################################################
++    print("factor_data:", factor_data)
+     ud = factor_data.split(',')
+     b1b2_info = '{0:s},{1:s},{2:s}, {3:d} thread{4:s}'.format(ud[0],ud[1],ud[2],actual_num_threads, '' if (actual_num_threads == 1) else 's')
+     zd = '{0:.0f}'.format(math.floor(t_total/86400.0)).rjust(3) + 'd '

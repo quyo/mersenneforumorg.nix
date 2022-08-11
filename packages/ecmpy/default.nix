@@ -2,7 +2,7 @@
 
 let
   pname = "ecmpy";
-  version = "0.44";
+  version = "0.45";
 in
 
 stdenvNoCC.mkDerivation {
@@ -21,14 +21,12 @@ stdenvNoCC.mkDerivation {
     runHook postUnpack
   '';
 
-  patchPhase = ''
-    runHook prePatch
+  patches = [ ./v0.45.patch ];
 
+  postPatch = ''
     sed -i -e '1s|^|#!${python2}/bin/python2\n|'                ecm.py
     sed -i -e "s|^ECM_PATH = .*$|ECM_PATH = '${ecm}/bin'|"      ecm.py
     sed -i -e 's|^ECM_THREADS = .*$|ECM_THREADS = 4|'           ecm.py
-
-    runHook postPatch
   '';
 
   installPhase = ''
