@@ -68,4 +68,5 @@ jobs:
         run: |
           nix run github:Samayel/shellscripts.nix#docker-load-nix-build .#docker
           docker push quyo/mersenneforumorg.nix:latest
+          docker tag quyo/mersenneforumorg.nix:latest git.quyo.net/quyo/mersenneforumorg.nix:latest
           docker push git.quyo.net/quyo/mersenneforumorg.nix:latest
