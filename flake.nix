@@ -1,9 +1,9 @@
 {
   inputs = {
     # nixpkgs-stable.url = "github:nixos/nixpkgs/release-22.05";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/d4f600ec45d9a14d41a4d5a61c034fa1bd819f88";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/a28adc36c20fd2fbaeb06ec9bbd79b6bf7443979";
     # nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/f4a4245e55660d0a590c17bab40ed08a1d010787";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/0e304ff0d9db453a4b230e9386418fd974d5804a";
 
     flake-utils.url = "github:numtide/flake-utils";
 
