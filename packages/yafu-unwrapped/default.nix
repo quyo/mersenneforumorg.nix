@@ -10,8 +10,8 @@ assert null == msieve.zlib;
 
 let
   pname = "yafu-unwrapped";
-  version = "0.20220505." + builtins.substring 0 8 commit;
-  commit = "ca48c65b66a465a5a47cf7da0301f4ef56227573";
+  version = "0.20220830." + builtins.substring 0 8 commit;
+  commit = "2003671ed5cacac5efcbc21eb3b8b1edac26e9cb";
 in
 
 stdenv.mkDerivation {
@@ -22,7 +22,7 @@ stdenv.mkDerivation {
     owner = "bbuhrow";
     repo = "yafu";
     rev = commit;
-    sha256 = "ZBYBzIxOiGb+5CRxpF2ubt2goEtvaDIUyutK5fMk7EU=";
+    sha256 = "ptARRTj+U9zH3x3KZfDbb1faEBiDBNHiNc+CpxH9GdI=";
   };
 
   buildInputs = [ gmp ecm msieve ytools ysieve ggnfs ];

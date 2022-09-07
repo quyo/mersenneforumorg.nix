@@ -4,8 +4,8 @@ assert gmp == ecm.gmp;
 
 let
   pname = "cado-nfs";
-  version = "0.20220706." + builtins.substring 0 8 commit;
-  commit = "f3a13e8a2c9b65d1853cb1205c58efe72954d1e5";
+  version = "0.20220901." + builtins.substring 0 8 commit;
+  commit = "aa5eabceff3c89e2e0e3536fce78fce0af33c31f";
 in
 
 stdenv.mkDerivation {
@@ -15,7 +15,7 @@ stdenv.mkDerivation {
   src = fetchgit {
     url = "https://gitlab.inria.fr/cado-nfs/cado-nfs";
     rev = commit;
-    sha256 = "jrV1nozmtwkM/4otq00NQYT3zbkzgzEF6WTRz76JBOg=";
+    sha256 = "T05QegunVoC8nAXE0DqvFz4vTIUZQXJunXwKEjOMe4U=";
   };
 
   nativeBuildInputs = [ cmake bash ];

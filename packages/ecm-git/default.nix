@@ -2,8 +2,8 @@
 
 let
   pname = "ecm";
-  version = "0.20220613." + builtins.substring 0 8 commit;
-  commit = "5663e00cb4880a6ee6393eb9067e9eea201098d4";
+  version = "0.20220826." + builtins.substring 0 8 commit;
+  commit = "1ae5403108addaef7e1b74e181f17e8fb276097a";
 in
 
 stdenv.mkDerivation {
@@ -13,7 +13,7 @@ stdenv.mkDerivation {
   src = fetchgit {
     url = "https://gitlab.inria.fr/zimmerma/ecm";
     rev = commit;
-    sha256 = "JVmtB6gdLHWF6lHdW7RiWydx/KEEyIPHcNfb0w1lnec=";
+    sha256 = "LP+2UOIAjbJ3H9J7csY3jfxxK7yA0iGRw5sJlLSPJpo=";
   };
 
   nativeBuildInputs = [ autoreconfHook m4 ];
