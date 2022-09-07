@@ -29,6 +29,10 @@ stdenv.mkDerivation {
     find . -type f -name "*.pl.in" -exec sed -i -e 's|^#!/usr/bin/env perl$|#!${perl}/bin/perl|g' {} +
     find . -type f -name "*.py"    -exec sed -i -e 's|^#!/usr/bin/env python3$|#!${python3}/bin/python3|g' {} +
 
+    # build and install convert_poly executable
+    sed -i -e 's|^add_executable(convert_poly EXCLUDE_FROM_ALL convert_poly\.c)$|add_executable(convert_poly convert_poly.c)|' misc/CMakeLists-nodist.txt
+    sed -i -e 's|^target_link_libraries(convert_poly utils)$|target_link_libraries(convert_poly utils)\ninstall(TARGETS convert_poly RUNTIME DESTINATION ''${LIBSUFFIX}/misc)|' misc/CMakeLists-nodist.txt
+
     runHook postPatch
   '';
 
