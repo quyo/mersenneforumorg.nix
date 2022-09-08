@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, gmp, ecm, msieve, ytools, ysieve, ggnfs }:
+{ stdenv, fetchFromGitHub, gmp, ecm, msieve, ytools, ysieve, ggnfs, cado-nfs }:
 
 assert gmp == ecm.gmp;
 assert gmp == msieve.gmp;
@@ -16,7 +16,7 @@ in
 
 stdenv.mkDerivation {
   inherit pname version;
-  inherit gmp ecm msieve ytools ysieve ggnfs;
+  inherit gmp ecm msieve ytools ysieve ggnfs cado-nfs;
 
   src = fetchFromGitHub {
     owner = "bbuhrow";
@@ -25,20 +25,26 @@ stdenv.mkDerivation {
     sha256 = "ptARRTj+U9zH3x3KZfDbb1faEBiDBNHiNc+CpxH9GdI=";
   };
 
-  buildInputs = [ gmp ecm msieve ytools ysieve ggnfs ];
+  buildInputs = [ gmp ecm msieve ytools ysieve ggnfs cado-nfs ];
 
   patchPhase = ''
     runHook prePatch
 
     sed -i -e 's| /users/buhrow/src/c/gmp_install/gmp-6.2.0/lib/libgmp.a | -lgmp |g' Makefile
 
-    sed -i -e 's|^% threads=1$|threads=4|'                  yafu.ini
-    sed -i -e 's|^% nprp=1$|nprp=20|'                       yafu.ini
-    sed -i -e 's|^v$|% v|'                                  yafu.ini
-    sed -i -e 's|^xover=.*$|xover=95|'                      yafu.ini
-    sed -i -e 's|^ggnfs_dir=.*$|ggnfs_dir=${ggnfs}/bin/|'   yafu.ini
-    sed -i -e 's|^ecm_path=.*$|ecm_path=${ecm}/bin/ecm|'    yafu.ini
-    sed -i -e 's|^ext_ecm=.*$|ext_ecm=10000|'               yafu.ini
+    sed -i -e 's|^% threads=1$|threads=4|'                                                                    yafu.ini
+    sed -i -e 's|^% nprp=1$|nprp=20|'                                                                         yafu.ini
+    sed -i -e 's|^v$|% v|'                                                                                    yafu.ini
+    sed -i -e 's|^xover=.*$|xover=95|'                                                                        yafu.ini
+    # sed -i -e 's|^% cadoMsieve$|cadoMsieve|'                                                                  yafu.ini
+    sed -i -e 's|^cado_dir=.*$|cado_dir=${cado-nfs}/|'                                                        yafu.ini
+    sed -i -e 's|^convert_poly_path=.*$|convert_poly_path=${cado-nfs}/lib/cado-nfs-3.0.0/misc/convert_poly|'  yafu.ini
+    sed -i -e 's|^ggnfs_dir=.*$|ggnfs_dir=${ggnfs}/bin/|'                                                     yafu.ini
+    sed -i -e 's|^ecm_path=.*$|ecm_path=${ecm}/bin/ecm|'                                                      yafu.ini
+    sed -i -e 's|^ext_ecm=.*$|ext_ecm=10000|'                                                                 yafu.ini
+
+    sed -i -e 's|%scado-nfs.py|%sbin/cado-nfs.py|'                                                            factor/nfs/nfs.c
+    sed -i -e 's|%sparameters/factor/params.c%d|%sshare/cado-nfs-3.0.0/factor/params.c%d|'                    factor/nfs/nfs.c
 
     runHook postPatch
   '';
