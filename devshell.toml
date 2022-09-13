@@ -25,7 +25,7 @@ category = "factorization"
 help = "factoring numbers using the ECM, p-1 and p+1 algorithms"
 
 [[commands]]
-package = "msieve-svn"
+package = "msieve-nfsathome"
 command = "msieve"
 category = "factorization"
 help = "implementation of the SIQS and GNFS algorithms"

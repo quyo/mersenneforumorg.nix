@@ -30,7 +30,8 @@ stdenv.mkDerivation {
   patchPhase = ''
     runHook prePatch
 
-    sed -i -e 's| /users/buhrow/src/c/gmp_install/gmp-6.2.0/lib/libgmp.a | -lgmp |g' Makefile
+    sed -i -e 's| /users/buhrow/src/c/gmp_install/gmp-6.2.0/lib/libgmp.a | -lgmp |g'                          Makefile
+    sed -i -e 's|^\(CFLAGS = -g -m64.*\)|\1 -fopenmp -DHAVE_OMP|'                                             Makefile
 
     sed -i -e 's|^% threads=1$|threads=4|'                                                                    yafu.ini
     sed -i -e 's|^% nprp=1$|nprp=20|'                                                                         yafu.ini

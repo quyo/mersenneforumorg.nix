@@ -4,7 +4,7 @@
 , ecm-git
 , ecmpy
 , factmsievepy
-, msieve-svn
+, msieve-nfsathome
 , yafu
 , yafu-unwrapped
 , ysieve
@@ -19,7 +19,7 @@ let
     ecm = { type = "app"; program = "${ecm-git}/bin/ecm"; };
     ecmpy = { type = "app"; program = "${ecmpy}/bin/ecm.py"; };
     factmsievepy = { type = "app"; program = "${factmsievepy}/bin/factmsieve.py"; };
-    msieve = { type = "app"; program = "${msieve-svn}/bin/msieve"; };
+    msieve = { type = "app"; program = "${msieve-nfsathome}/bin/msieve"; };
     # primecount = { type = "app"; program = "${primecount}/bin/primecount"; };
     # primesieve = { type = "app"; program = "${primesieve}/bin/primesieve"; };
     # primesum = { type = "app"; program = "${primesum}/bin/primesum"; };
