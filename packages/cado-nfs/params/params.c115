@@ -1,0 +1,68 @@
+###########################################################################
+#     Parameter file for Cado-NFS
+###########################################################################
+# See params/params.c90 for an example which contains some documentation.
+
+###########################################################################
+# General parameters
+###########################################################################
+
+name = c115
+
+###########################################################################
+# Polynomial selection
+###########################################################################
+
+tasks.polyselect.degree = 5
+
+tasks.polyselect.P = 22000
+#tasks.polyselect.admin = 120
+tasks.polyselect.admax = 14000
+tasks.polyselect.adrange = 360
+tasks.polyselect.incr = 60
+tasks.polyselect.nq = 15625
+tasks.polyselect.nrkeep = 36
+tasks.polyselect.ropteffort = 4
+
+###########################################################################
+# Sieve
+###########################################################################
+
+tasks.lim0 = 2000000
+tasks.lim1 = 2700000
+tasks.lpb0 = 26
+tasks.lpb1 = 27
+tasks.sieve.mfb0 = 50
+tasks.sieve.mfb1 = 52
+tasks.sieve.lambda0 = 1.88
+tasks.sieve.lambda1 = 1.92
+tasks.sieve.ncurves0 = 13
+tasks.sieve.ncurves1 = 17
+tasks.I = 12 
+#tasks.sieve.adjust_strategy = 2
+tasks.sieve.rels_wanted = 9000000
+tasks.sieve.qrange = 10000
+tasks.qmin = 400000
+
+###########################################################################
+# Filtering
+###########################################################################
+
+tasks.filter.purge.keep = 155
+tasks.filter.required_excess = 0.04
+tasks.filter.target_density = 100.0
+
+###########################################################################
+# Linear algebra
+###########################################################################
+
+tasks.linalg.bwc.interval = 2000
+tasks.linalg.bwc.interleaving = 0
+tasks.linalg.m = 64
+tasks.linalg.n = 64
+
+###########################################################################
+# Characters
+###########################################################################
+
+tasks.linalg.characters.nchar = 50

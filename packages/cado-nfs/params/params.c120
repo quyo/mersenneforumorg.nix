@@ -1,0 +1,71 @@
+###########################################################################
+#     Parameter file for Cado-NFS
+###########################################################################
+# See params/params.c90 for an example which contains some documentation.
+
+###########################################################################
+# General parameters
+###########################################################################
+
+name = c120
+
+###########################################################################
+# Polynomial selection
+###########################################################################
+
+tasks.polyselect.degree = 5
+tasks.polyselect.P = 29000
+tasks.polyselect.admin = 480
+tasks.polyselect.admax = 24e3
+tasks.polyselect.adrange = 360
+tasks.polyselect.incr = 60
+tasks.polyselect.nq = 15625
+tasks.polyselect.nrkeep = 48
+tasks.polyselect.ropteffort = 5.5
+
+###########################################################################
+# Sieve
+###########################################################################
+
+tasks.lim0 = 2200000
+tasks.lim1 = 3300000
+tasks.lpb0 = 27
+tasks.lpb1 = 28
+tasks.sieve.mfb0 = 51
+tasks.sieve.mfb1 = 54
+tasks.sieve.lambda0 = 1.86
+tasks.sieve.lambda1 = 1.92
+tasks.sieve.ncurves0 = 14
+tasks.sieve.ncurves1 = 18
+tasks.I = 12
+#tasks.sieve.adjust_strategy = 2
+tasks.qmin = 750000
+tasks.sieve.qrange = 20000
+
+# with that value, many factorizations will need two filtering attempts
+tasks.sieve.rels_wanted = 16000000
+
+###########################################################################
+# Filtering
+###########################################################################
+
+tasks.filter.purge.keep = 160
+tasks.filter.required_excess = 0.05
+# for a c120, a density of 100 is close to optimal (determined experimentally
+# with -t 16, and BWC cost W*N + C*N^2, with C = 17.2)
+tasks.filter.target_density = 105
+
+###########################################################################
+# Linear algebra
+###########################################################################
+
+tasks.linalg.bwc.interval = 2500
+tasks.linalg.bwc.interleaving = 0
+tasks.linalg.m = 64
+tasks.linalg.n = 64
+
+###########################################################################
+# Characters
+###########################################################################
+
+tasks.linalg.characters.nchar = 50

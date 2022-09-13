@@ -45,4 +45,9 @@ stdenv.mkDerivation {
 
     runHook postConfigure
   '';
+
+  params = ./params;
+
+  postInstall = "cp $params/* $out/share/cado-nfs-3.0.0/factor/";
+
 }
