@@ -1,9 +1,9 @@
 {
   inputs = {
     # nixpkgs-stable.url = "github:nixos/nixpkgs/release-22.05";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/a28adc36c20fd2fbaeb06ec9bbd79b6bf7443979";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/9ecc270f02b09b2f6a76b98488554dd842797357";
     # nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/0e304ff0d9db453a4b230e9386418fd974d5804a";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/95fda953f6db2e9496d2682c4fc7b82f959878f7";
 
     flake-utils.url = "github:numtide/flake-utils";
 
@@ -30,7 +30,7 @@
       };
     }
     //
-    flake-utils.lib.eachSystem [ flake-utils.lib.system.x86_64-linux ] (system:
+    flake-utils.lib.eachSystem (map (x: flake-utils.lib.system.${x}) [ "x86_64-linux" ]) (system:
       let
         inherit (pkgs-stable) lib;
 
