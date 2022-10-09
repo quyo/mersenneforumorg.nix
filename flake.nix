@@ -41,7 +41,8 @@
 
         overlays = (builtins.attrValues self.overlays) ++ [
           devshell.overlay
-          qnixpkgs.overlays.lib
+          qnixpkgs.overlays.qfixes
+          qnixpkgs.overlays.qlib
           qnixpkgs.overlays.qshell
         ];
 
