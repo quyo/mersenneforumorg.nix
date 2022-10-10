@@ -15,11 +15,6 @@ jobs:
     secrets:
       nixbuild_ssh_key: ${{ secrets.NIXBUILD_SSH_KEY }}
     with:
-      pre_build_script: |
-        NIX_CONF_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/nix/nix.conf"
-        echo "enforce-determinism = true" >> "$NIX_CONF_FILE"
-        echo "repeat = 2" >> "$NIX_CONF_FILE"
-        cat "$NIX_CONF_FILE"
       filter_builds: '.top_attr == "packages"'
 #     filter_builds: '.attr == "ci-build"'
 
@@ -39,6 +34,21 @@ jobs:
       - uses: nixbuild/nixbuild-action@v13
         with:
           nixbuild_ssh_key: ${{ secrets.NIXBUILD_SSH_KEY }}
+
+      - name: Fix nix.conf
+        working-directory: .
+        run: |
+          NIX_BUILDERS_FILE="$(mktemp)"
+          cat >"$NIX_BUILDERS_FILE" <<EOF
+          eu.nixbuild.net x86_64-linux - 100 1 big-parallel,benchmark
+          eu.nixbuild.net i686-linux - 100 1 big-parallel,benchmark
+          eu.nixbuild.net aarch64-linux - 100 1 big-parallel,benchmark
+          eu.nixbuild.net armv7l-linux - 100 1 big-parallel,benchmark
+          EOF
+
+          NIX_CONF_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/nix/nix.conf"
+          echo "builders = @$NIX_BUILDERS_FILE" >>"$NIX_CONF_FILE"
+          cat "$NIX_CONF_FILE"
 
       - name: Upload flake inputs to Cachix
         working-directory: .
