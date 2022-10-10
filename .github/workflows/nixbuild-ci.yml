@@ -36,7 +36,7 @@ jobs:
           nix_conf: |
             experimental-features = nix-command flakes
 
-      - uses: nixbuild/nixbuild-action@v12
+      - uses: nixbuild/nixbuild-action@v13
         with:
           nixbuild_ssh_key: ${{ secrets.NIXBUILD_SSH_KEY }}
 
