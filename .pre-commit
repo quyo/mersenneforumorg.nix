@@ -5,18 +5,18 @@ set -euo pipefail
 IFS=$'\n\t'
 
 
+nix flake show . >/dev/null
+nix build --no-link .#ci-build
+echo
+echo
+
+
 # Find all changed files for this commit
 # Compute the diff only once to save a small amount of time.
 CHANGED_FILES=$(git diff --name-only --cached --diff-filter=ACMR)
 
-# Get only changed files that match our file suffix pattern
-get_pattern_files() {
-    pattern=$(echo "$*" | sed "s/ /\$\\\|/g")
-    echo "$CHANGED_FILES" | { grep "$pattern$" || true; }
-}
-
 # Get all changed nix files
-NIX_FILES=$(get_pattern_files .nix)
+NIX_FILES=$(echo "$CHANGED_FILES" | { grep '\.nix$' || true; })
 
 if [[ -n "$NIX_FILES" ]]
 then
@@ -24,7 +24,3 @@ then
     git diff $NIX_FILES
     git add $NIX_FILES
 fi
-
-
-nix flake show . >/dev/null
-nix build --no-link .#ci-build
