@@ -1,7 +1,16 @@
 diff --git a/src/Makefile b/src/Makefile
-index 01f66be..d8b862c 100644
+index 01f66be..328f104 100644
 --- a/src/Makefile
 +++ b/src/Makefile
+@@ -35,7 +35,7 @@ endif
+ DEBUGOPT=-W -Wall -g -pg
+ 
+ CFLAGS=-DNDEBUG -O3 -funroll-loops -finline-functions \
+-       -ftracer -fomit-frame-pointer -W -Wall $(ALLOPT)
++       -ftracer -fomit-frame-pointer -W -Wall -Wl,--allow-multiple-definition $(ALLOPT)
+ # CFLAGS=$(DEBUGOPT) $(ALLOPT)
+ # -ffast-math removed since -funsafe-math-optimizations seems to cause occasional problems, especially in sqrt
+ 
 @@ -48,7 +48,7 @@ OBJS=getprimes.o fbmisc.o squfof.o rels.o $(LANCZOS).o poly.o mpz_poly.o \
  BINS=$(BINDIR)/sieve $(BINDIR)/procrels $(BINDIR)/sqrt $(BINDIR)/polyselect \
       $(BINDIR)/makefb $(BINDIR)/matsolve $(BINDIR)/matbuild $(BINDIR)/matprune
