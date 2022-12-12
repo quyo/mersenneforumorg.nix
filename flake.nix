@@ -17,7 +17,7 @@
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
 
-    qnixpkgs.url = "github:Samayel/qnixpkgs";
+    qnixpkgs.url = "github:quyo/qnixpkgs";
     qnixpkgs.inputs.nixpkgs-stable.follows = "nixpkgs-stable";
     qnixpkgs.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
     qnixpkgs.inputs.flake-utils.follows = "flake-utils";
