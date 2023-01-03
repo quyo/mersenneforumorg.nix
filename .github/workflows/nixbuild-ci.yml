@@ -17,7 +17,7 @@ jobs:
     with:
       nix_conf: |
         sandbox = relaxed
-      filter_builds: '.top_attr == "packages"'
+      filter_builds: '.top_attr == "packages" and .system == "x86_64-linux"'
 #     filter_builds: '.attr == "ci-build"'
 
   upload-image:
