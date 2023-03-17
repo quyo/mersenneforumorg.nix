@@ -34,7 +34,7 @@ jobs:
             experimental-features = nix-command flakes
             sandbox = relaxed
 
-      - uses: nixbuild/nixbuild-action@v15
+      - uses: nixbuild/nixbuild-action@v16
         with:
           nixbuild_ssh_key: ${{ secrets.NIXBUILD_SSH_KEY }}
 
