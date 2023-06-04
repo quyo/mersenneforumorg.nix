@@ -29,6 +29,7 @@
     {
       overlays = {
         default = import ./overlay.nix self;
+        qfixes = import qfixes/overlay.nix self;
       };
     }
     //

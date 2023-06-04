@@ -6,7 +6,7 @@ IFS=$'\n\t'
 
 
 nix flake show . >/dev/null
-NIXPKGS_ALLOW_INSECURE=1 nix build --no-link --impure .#ci-build
+nix build --no-link .#ci-build
 echo
 echo
 
