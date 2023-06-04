@@ -3,7 +3,7 @@
   # nixConfig.extra-trusted-public-keys = "quyo-public.cachix.org-1:W83ifK7/6EvKU4Q2ZxvHRAkiIRzPeXYnp9LWHezs5U0= nixbuild.net/quyo-1:TaAsUc6SBQnXhUQJM4s+1oQlTKa1e3M0u3Zqb36fbRc=";
 
   inputs = {
-    nixpkgs-stable.url = "github:nixos/nixpkgs/release-22.11";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/release-23.05";
     # nixpkgs-stable.url = "github:nixos/nixpkgs/9ecc270f02b09b2f6a76b98488554dd842797357";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     # nixpkgs-unstable.url = "github:nixos/nixpkgs/95fda953f6db2e9496d2682c4fc7b82f959878f7";
@@ -12,7 +12,6 @@
 
     devshell.url = "github:numtide/devshell";
     devshell.inputs.nixpkgs.follows = "nixpkgs-stable";
-    devshell.inputs.flake-utils.follows = "flake-utils";
 
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
@@ -40,7 +39,7 @@
         version = lib.q.flake.version self;
 
         overlays = (builtins.attrValues self.overlays) ++ [
-          devshell.overlay
+          devshell.overlays.default
           qnixpkgs.overlays.qfixes
           qnixpkgs.overlays.qlib
           qnixpkgs.overlays.qshell

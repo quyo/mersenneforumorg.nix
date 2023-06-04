@@ -2,19 +2,17 @@
   "nodes": {
     "devshell": {
       "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
         "nixpkgs": [
           "nixpkgs-stable"
-        ]
+        ],
+        "systems": "systems"
       },
       "locked": {
-        "lastModified": 1667210711,
-        "narHash": "sha256-IoErjXZAkzYWHEpQqwu/DeRNJGFdR7X2OGbkhMqMrpw=",
+        "lastModified": 1683635384,
+        "narHash": "sha256-9goJTd05yOyD/McaMqZ4BUB8JW+mZMnZQJZ7VQ6C/Lw=",
         "owner": "numtide",
         "repo": "devshell",
-        "rev": "96a9dd12b8a447840cc246e17a47b81a4268bba7",
+        "rev": "5143ea68647c4cf5227e4ad2100db6671fc4c369",
         "type": "github"
       },
       "original": {
@@ -26,11 +24,11 @@
     "flake-compat": {
       "flake": false,
       "locked": {
-        "lastModified": 1668681692,
-        "narHash": "sha256-Ht91NGdewz8IQLtWZ9LCeNXMSXHUss+9COoqu6JLmXU=",
+        "lastModified": 1673956053,
+        "narHash": "sha256-4gtG9iQuiKITOjNQQeQIpoIB6b16fm+504Ch3sNKLd8=",
         "owner": "edolstra",
         "repo": "flake-compat",
-        "rev": "009399224d5e398d03b22badca40a37ac85412a1",
+        "rev": "35bb57c0c8d8b62bbfd284272c928ceb64ddbde9",
         "type": "github"
       },
       "original": {
@@ -40,84 +38,46 @@
       }
     },
     "flake-utils": {
-      "locked": {
-        "lastModified": 1667395993,
-        "narHash": "sha256-nuEHfE/LcWyuSWnS8t12N1wc105Qtau+/OdUAjtQ0rA=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "5aed5285a952e0b949eb3ba02c12fa4fcfef535f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "mersenneforumorg": {
       "inputs": {
-        "devshell": [
-          "qnixpkgs",
-          "devshell"
-        ],
-        "flake-compat": [
-          "qnixpkgs",
-          "flake-compat"
-        ],
-        "flake-utils": [
-          "qnixpkgs",
-          "flake-utils"
-        ],
-        "nixpkgs-stable": [
-          "qnixpkgs",
-          "nixpkgs-stable"
-        ],
-        "nixpkgs-unstable": [
-          "qnixpkgs",
-          "nixpkgs-unstable"
-        ],
-        "qnixpkgs": [
-          "qnixpkgs",
-          "qnixpkgs"
-        ]
+        "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1669475463,
-        "narHash": "sha256-5ee1Dgen6gEFQmMc48y9BwuiXBDwoxuLPPtXVoE64/k=",
-        "owner": "Samayel",
-        "repo": "mersenneforumorg.nix",
-        "rev": "0c8b01f457cf3c2f1f0c832ba32b4ad425adf589",
+        "lastModified": 1685518550,
+        "narHash": "sha256-o2d0KcvaXzTrPRIo0kOLV0/QXHhDQ5DTi+OxcjO8xqY=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "a1720a10a6cfe8234c0e93907ffe81be440f4cef",
         "type": "github"
       },
       "original": {
-        "owner": "Samayel",
-        "repo": "mersenneforumorg.nix",
+        "owner": "numtide",
+        "repo": "flake-utils",
         "type": "github"
       }
     },
     "nixpkgs-stable": {
       "locked": {
-        "lastModified": 1670829349,
-        "narHash": "sha256-Lyz85Qr89MPAlTwcDZsN/+XrCGS8WZYLp31fy1GiG0E=",
+        "lastModified": 1685865905,
+        "narHash": "sha256-XJZ/o17eOd2sEsGif+/MQBnfa2DKmndWgJyc7CWajFc=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "db0e4828f272f83ea4437a6838e1281d0c870501",
+        "rev": "e7603eba51f2c7820c0a182c6bbb351181caa8e7",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
-        "ref": "release-22.11",
+        "ref": "release-23.05",
         "repo": "nixpkgs",
         "type": "github"
       }
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1670827406,
-        "narHash": "sha256-nLNk7uiLbhbvb4TVz67XK7+Ezr1zcWYDWmNrWGmEUqA=",
+        "lastModified": 1685866647,
+        "narHash": "sha256-4jKguNHY/edLYImB+uL8jKPL/vpfOvMmSlLAGfxSrnY=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "ffca9ffaaafb38c8979068cee98b2644bd3f14cb",
+        "rev": "a53a3bec10deef6e1cc1caba5bc60f53b959b1e8",
         "type": "github"
       },
       "original": {
@@ -138,7 +98,6 @@
         "flake-utils": [
           "flake-utils"
         ],
-        "mersenneforumorg": "mersenneforumorg",
         "nixpkgs-stable": [
           "nixpkgs-stable"
         ],
@@ -151,11 +110,11 @@
         "shellscripts": "shellscripts"
       },
       "locked": {
-        "lastModified": 1670793474,
-        "narHash": "sha256-aA/XEJHRLJL5Wc+0bYDrWxV9vnkzo+ycAcWoHQBcKdc=",
+        "lastModified": 1685738658,
+        "narHash": "sha256-SDy8GQZFXLMjr/naVDUA7RsqWS338+67Jb/uCDCbn5g=",
         "owner": "quyo",
         "repo": "qnixpkgs",
-        "rev": "2120ea295aa984f6bd27ceabf77d270b45cb5a48",
+        "rev": "1b4e096775db78059531568bc70d5a693abb8722",
         "type": "github"
       },
       "original": {
@@ -202,16 +161,46 @@
         ]
       },
       "locked": {
-        "lastModified": 1670783570,
-        "narHash": "sha256-jEHAeH90f9N6jepbkEkjdi2L6VDhsq9kJb7TrKffSqc=",
-        "owner": "Samayel",
+        "lastModified": 1685708857,
+        "narHash": "sha256-jS797qeoE0ExAgSPgPG0v9FVytJVSKP6GNlkEkFXtx8=",
+        "owner": "quyo",
         "repo": "shellscripts.nix",
-        "rev": "7ab97a91ce9394bb1f1ed1ac1094c21c076f3cea",
+        "rev": "0783169d6fbd318ca18123f60ac0cd56d96fd1c8",
         "type": "github"
       },
       "original": {
-        "owner": "Samayel",
+        "owner": "quyo",
         "repo": "shellscripts.nix",
+        "type": "github"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_2": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
         "type": "github"
       }
     }
