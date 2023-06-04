@@ -69,6 +69,7 @@ jobs:
       - name: Load and push docker image (mersenneforumorg.nix:latest)
         working-directory: .
         run: |
+          nix build .#docker
           nix run github:quyo/shellscripts.nix#docker-load-nix-build .#docker
           docker push quyo/mersenneforumorg.nix:latest
           docker tag quyo/mersenneforumorg.nix:latest git.quyo.net/quyo/mersenneforumorg.nix:latest
