@@ -11,7 +11,7 @@ jobs:
 
   build-flake:
     name: Build flake
-    uses: nixbuild/nixbuild-action/.github/workflows/ci-workflow.yml@v18
+    uses: nixbuild/nixbuild-action/.github/workflows/ci-workflow.yml@v19
     secrets:
       nixbuild_ssh_key: ${{ secrets.NIXBUILD_SSH_KEY }}
     with:
@@ -34,7 +34,7 @@ jobs:
             experimental-features = nix-command flakes
             sandbox = relaxed
 
-      - uses: nixbuild/nixbuild-action@v18
+      - uses: nixbuild/nixbuild-action@v19
         with:
           nixbuild_ssh_key: ${{ secrets.NIXBUILD_SSH_KEY }}
 
